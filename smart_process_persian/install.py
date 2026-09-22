@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 
 import frappe
-from frappe.translate import clear_user_translation_cache
+from frappe.core.doctype.translation.translation import clear_user_translation_cache
 
 
 def _catalogue_keys():
