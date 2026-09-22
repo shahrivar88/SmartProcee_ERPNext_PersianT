@@ -1,0 +1,6 @@
+# Use this only for frappe_docker deployments whose frontend container has a
+# container-local /home/frappe/frappe-bench/assets directory.
+services:
+  frontend:
+    volumes:
+      - "${SMART_PROCESS_PERSIAN_PATH}/smart_process_persian/public:/home/frappe/frappe-bench/assets/smart_process_persian:ro"
