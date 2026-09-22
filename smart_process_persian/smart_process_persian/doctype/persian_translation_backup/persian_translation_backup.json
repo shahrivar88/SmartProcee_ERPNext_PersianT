@@ -1,0 +1,36 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "source_docname",
+  "language",
+  "source_text",
+  "context",
+  "translated_text",
+  "contributed",
+  "contribution_status",
+  "contribution_docname"
+ ],
+ "fields": [
+  {"fieldname": "source_docname", "fieldtype": "Data", "label": "Source Document Name"},
+  {"fieldname": "language", "fieldtype": "Data", "label": "Language", "reqd": 1},
+  {"fieldname": "source_text", "fieldtype": "Code", "label": "Source Text", "reqd": 1},
+  {"fieldname": "context", "fieldtype": "Data", "label": "Context"},
+  {"fieldname": "translated_text", "fieldtype": "Code", "label": "Translated Text", "reqd": 1},
+  {"default": "0", "fieldname": "contributed", "fieldtype": "Check", "label": "Contributed"},
+  {"fieldname": "contribution_status", "fieldtype": "Data", "label": "Contribution Status"},
+  {"fieldname": "contribution_docname", "fieldtype": "Data", "label": "Contribution Document Name"}
+ ],
+ "index_web_pages_for_search": 0,
+ "is_virtual": 0,
+ "module": "Smart Process Persian",
+ "name": "Persian Translation Backup",
+ "permissions": [
+  {"create": 1, "delete": 1, "read": 1, "role": "System Manager", "write": 1}
+ ],
+ "sort_field": "creation",
+ "sort_order": "ASC",
+ "track_changes": 0
+}

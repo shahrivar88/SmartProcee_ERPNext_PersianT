@@ -1,0 +1,14 @@
+[project]
+name = "smart_process_persian"
+authors = [
+    { name = "Smart Process", email = "info@smartprocess.local" }
+]
+description = "Portable Persian translations for Frappe and ERPNext"
+requires-python = ">=3.14"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = []
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"

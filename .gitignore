@@ -1,0 +1,7 @@
+*.pyc
+__pycache__/
+.pytest_cache/
+*.egg-info/
+compose.smart-process.before-persian.yaml
+compose.smart-process.with-persian.yaml
+translation-build.json
