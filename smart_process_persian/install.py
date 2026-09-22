@@ -1,8 +1,32 @@
 import csv
 from pathlib import Path
+import shutil
 
 import frappe
 from frappe.core.doctype.translation.translation import clear_user_translation_cache
+
+
+APP_NAME = "smart_process_persian"
+
+
+def _asset_path():
+	return Path(frappe.get_site_path()).parent / "assets" / APP_NAME
+
+
+def sync_public_assets():
+	"""Copy this app's static assets into the shared sites volume.
+
+	A real copy is intentional: it remains available to a separate nginx/frontend
+	container even when that container cannot resolve bench-generated symlinks.
+	Running migrate refreshes the copy after every app update.
+	"""
+	source = Path(frappe.get_app_path(APP_NAME, "public"))
+	target = _asset_path()
+	if target.is_symlink() or target.is_file():
+		target.unlink()
+	elif target.exists():
+		shutil.rmtree(target)
+	shutil.copytree(source, target)
 
 
 def _catalogue_keys():
@@ -53,6 +77,7 @@ def after_install():
 		frappe.delete_doc("Translation", row.name, ignore_permissions=True, force=True)
 	clear_user_translation_cache("fa")
 	frappe.clear_cache()
+	sync_public_assets()
 
 
 def before_uninstall():
@@ -77,3 +102,8 @@ def before_uninstall():
 		).insert(ignore_permissions=True)
 	clear_user_translation_cache("fa")
 	frappe.clear_cache()
+	target = _asset_path()
+	if target.is_symlink() or target.is_file():
+		target.unlink()
+	elif target.exists():
+		shutil.rmtree(target)

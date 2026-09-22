@@ -3,7 +3,7 @@ name = "smart_process_persian"
 authors = [
     { name = "Smart Process", email = "info@smartprocess.local" }
 ]
-description = "Portable Persian translations for Frappe and ERPNext"
+description = "Portable Persian translations and Yekan Bakh UI font for Frappe and ERPNext"
 requires-python = ">=3.14"
 readme = "README.md"
 dynamic = ["version"]
