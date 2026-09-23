@@ -12,8 +12,8 @@
 	font-style: normal;
 	font-weight: 100 300;
 	font-display: swap;
-	src: url("/assets/smart_process_persian/fonts/YekanBakh-Thin.woff2") format("woff2"),
-		url("/assets/smart_process_persian/fonts/YekanBakh-Thin.woff") format("woff");
+	src: url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-Thin.woff2") format("woff2"),
+		url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-Thin.woff") format("woff");
 }
 
 @font-face {
@@ -21,8 +21,8 @@
 	font-style: normal;
 	font-weight: 400;
 	font-display: swap;
-	src: url("/assets/smart_process_persian/fonts/YekanBakh-Light.woff2") format("woff2"),
-		url("/assets/smart_process_persian/fonts/YekanBakh-Light.woff") format("woff");
+	src: url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-Light.woff2") format("woff2"),
+		url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-Light.woff") format("woff");
 }
 
 @font-face {
@@ -30,8 +30,8 @@
 	font-style: normal;
 	font-weight: 500 600;
 	font-display: swap;
-	src: url("/assets/smart_process_persian/fonts/YekanBakh-Regular.woff2") format("woff2"),
-		url("/assets/smart_process_persian/fonts/YekanBakh-Regular.woff") format("woff");
+	src: url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-Regular.woff2") format("woff2"),
+		url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-Regular.woff") format("woff");
 }
 
 @font-face {
@@ -39,8 +39,8 @@
 	font-style: normal;
 	font-weight: 700;
 	font-display: swap;
-	src: url("/assets/smart_process_persian/fonts/YekanBakh-SemiBold.woff2") format("woff2"),
-		url("/assets/smart_process_persian/fonts/YekanBakh-SemiBold.woff") format("woff");
+	src: url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-SemiBold.woff2") format("woff2"),
+		url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-SemiBold.woff") format("woff");
 }
 
 @font-face {
@@ -48,8 +48,8 @@
 	font-style: normal;
 	font-weight: 800;
 	font-display: swap;
-	src: url("/assets/smart_process_persian/fonts/YekanBakh-Bold.woff2") format("woff2"),
-		url("/assets/smart_process_persian/fonts/YekanBakh-Bold.woff") format("woff");
+	src: url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-Bold.woff2") format("woff2"),
+		url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-Bold.woff") format("woff");
 }
 
 @font-face {
@@ -57,8 +57,8 @@
 	font-style: normal;
 	font-weight: 900;
 	font-display: swap;
-	src: url("/assets/smart_process_persian/fonts/YekanBakh-ExtraBold.woff2") format("woff2"),
-		url("/assets/smart_process_persian/fonts/YekanBakh-ExtraBold.woff") format("woff");
+	src: url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-ExtraBold.woff2") format("woff2"),
+		url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-ExtraBold.woff") format("woff");
 }
 
 /* Every Frappe stylesheet resolves its font through --font-stack. */

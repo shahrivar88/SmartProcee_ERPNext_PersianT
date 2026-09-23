@@ -1,5 +1,5 @@
 [project]
-name = "smart_process_persian"
+name = "smartprocee_erpnext_persiant"
 authors = [
     { name = "Smart Process", email = "info@smartprocess.local" }
 ]

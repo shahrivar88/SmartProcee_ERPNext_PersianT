@@ -6,7 +6,7 @@ import frappe
 from frappe.core.doctype.translation.translation import clear_user_translation_cache
 
 
-APP_NAME = "smart_process_persian"
+APP_NAME = "smartprocee_erpnext_persiant"
 
 
 def _asset_path():

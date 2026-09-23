@@ -25,7 +25,7 @@
  ],
  "index_web_pages_for_search": 0,
  "is_virtual": 0,
- "module": "Smart Process Persian",
+ "module": "SmartProcee_ERPNext_PersianT",
  "name": "Persian Translation Backup",
  "permissions": [
   {"create": 1, "delete": 1, "read": 1, "role": "System Manager", "write": 1}
