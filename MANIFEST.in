@@ -1,3 +1,3 @@
 include license.txt
 include docker-compose.assets.example.yaml
-recursive-include smart_process_persian *.csv *.json *.md *.py *.txt *.css *.woff *.woff2
+recursive-include smartprocee_erpnext_persiant *.csv *.json *.md *.py *.txt *.css *.woff *.woff2
