@@ -10,5 +10,5 @@ after_install = "smartprocee_erpnext_persiant.install.after_install"
 before_uninstall = "smartprocee_erpnext_persiant.install.before_uninstall"
 after_migrate = ["smartprocee_erpnext_persiant.install.sync_public_assets"]
 
-app_include_css = ["/assets/smartprocee_erpnext_persiant/css/yekan_bakh.css?v=1"]
-web_include_css = ["/assets/smartprocee_erpnext_persiant/css/yekan_bakh.css?v=1"]
+app_include_css = ["/assets/smartprocee_erpnext_persiant/css/yekan_bakh.css?v=2"]
+web_include_css = ["/assets/smartprocee_erpnext_persiant/css/yekan_bakh.css?v=2"]
