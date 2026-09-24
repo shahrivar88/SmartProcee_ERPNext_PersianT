@@ -61,9 +61,8 @@
 		url("/assets/smartprocee_erpnext_persiant/fonts/YekanBakh-ExtraBold.woff") format("woff");
 }
 
-/* Every Frappe stylesheet resolves its font through --font-stack. The doubled
-   :root outranks the plain :root that bundles loaded later (login.bundle) redeclare. */
-:root:root {
+/* Every Frappe stylesheet resolves its font through --font-stack. */
+:root {
 	--font-stack: "Yekan Bakh", "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI",
 		"Roboto", "Helvetica Neue", Arial, sans-serif;
 }
