@@ -1,32 +1,35 @@
-# SmartProcee_ERPNext_PersianT
+# Persian Translation
 
-Portable Persian translation and UI-font app for Frappe and ERPNext 16.
+Persian catalogue, Yekan Bakh font, and Persian Translation Manager for Frappe and ERPNext 16.
 
-The app contains 16,779 Persian translations and the Yekan Bakh font used by Desk, website and login pages. It also contains a reversible backup mechanism for pre-existing site-level Persian Translation records that would otherwise override the app catalogue. It does not patch Frappe or ERPNext source files.
+The install name is `smartprocee_erpnext_persiant`. The Frappe module name is `Persian Translation`.
 
-Static font assets are copied to the shared `sites/assets` directory after installation and after every migration. This also supports Docker deployments where the web and backend processes run in different containers. Uninstall removes only this app's asset directory and restores the previous translations.
+## Requirements
+
+- Frappe 16
+- ERPNext 16
+- Python 3.10 or newer
 
 ## Install
 
 ```bash
-bench get-app /path/to/smartprocee_erpnext_persiant
+bench get-app https://github.com/shahrivar88/SmartProcee_ERPNext_PersianT
 bench --site <site-name> install-app smartprocee_erpnext_persiant
 bench --site <site-name> migrate
-bench --site <site-name> clear-cache
 ```
 
-Restart the web and worker processes after installation.
+Restart web and workers after install. The Desk home and sidebar label is `فارسی‌ساز`. It opens the page `persian-translation-manager`. Only a System Manager can open that page or call its APIs.
 
-### frappe_docker
-
-Some `frappe_docker` layouts keep `/home/frappe/frappe-bench/assets` local to each container. In that layout, add `docker-compose.assets.example.yaml` to the Compose files, set `SMARTPROCEE_ERPNEXT_PERSIANT_PATH` to the host path of this repository, and recreate the `frontend` service. The read-only mount makes the CSS and font binaries available directly to nginx after every container recreation.
-
-Example:
+## Update
 
 ```bash
-export SMARTPROCEE_ERPNEXT_PERSIANT_PATH=/absolute/path/to/smartprocee_erpnext_persiant
-docker compose -f compose.yaml -f docker-compose.assets.example.yaml up -d --force-recreate frontend
+cd apps/smartprocee_erpnext_persiant && git pull
+cd ../..
+bench --site <site-name> clear-cache
+bench --site <site-name> migrate
 ```
+
+Clear the cache before migrate when you update from version 1.0.0. That release used a module name Frappe cannot map to a Python package. The cache keeps the old name until you clear it. User Translation rows stay in place. Migrate refreshes the font copy under `sites/assets`.
 
 ## Uninstall
 
@@ -35,8 +38,8 @@ bench --site <site-name> uninstall-app smartprocee_erpnext_persiant
 bench --site <site-name> clear-cache
 ```
 
-Before uninstalling, the app restores any site-level Persian Translation records that existed before installation and were temporarily backed up because they conflicted with this catalogue.
+Uninstall removes this app's DocTypes, page, sidebar, and home icon. It does not delete Frappe Translation rows. It restores older backup rows only when that same key is missing. It keeps the font copy under `sites/assets`, because all sites on the bench share that folder.
 
 ## Font license
 
-Yekan Bakh is a commercial font and must be used and redistributed according to the license held by the system owner. Keep a repository containing these binaries private unless that license explicitly permits public redistribution.
+Yekan Bakh is a commercial font. Redistribute the font files only under the license you hold.

@@ -1,0 +1,22 @@
+{
+ "app": "smartprocee_erpnext_persiant",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "languages",
+ "icon_type": "Link",
+ "idx": 16,
+ "label": "فارسی‌ساز",
+ "link": "/desk/persian-translation-manager",
+ "link_to": "فارسی‌ساز",
+ "link_type": "Workspace Sidebar",
+ "name": "فارسی‌ساز",
+ "parent_icon": "Framework",
+ "restrict_removal": 0,
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "standard": 1
+}

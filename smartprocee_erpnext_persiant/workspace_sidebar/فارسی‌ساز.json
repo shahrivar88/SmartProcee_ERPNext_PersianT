@@ -1,0 +1,25 @@
+{
+ "app": "smartprocee_erpnext_persiant",
+ "doctype": "Workspace Sidebar",
+ "header_icon": "languages",
+ "items": [
+  {
+   "icon": "languages",
+   "label": "مدیریت ترجمه",
+   "link_to": "persian-translation-manager",
+   "link_type": "Page",
+   "type": "Link"
+  },
+  {
+   "icon": "type",
+   "label": "مدیریت فونت سیستم",
+   "link_to": "persian-system-font-manager",
+   "link_type": "Page",
+   "type": "Link"
+  }
+ ],
+ "module": "Persian Translation",
+ "name": "فارسی‌ساز",
+ "standard": 1,
+ "title": "فارسی‌ساز"
+}

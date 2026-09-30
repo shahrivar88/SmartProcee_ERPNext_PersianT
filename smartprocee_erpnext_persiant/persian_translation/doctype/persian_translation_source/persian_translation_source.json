@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-27 01:40:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "app",
+  "module",
+  "source_path",
+  "source_text",
+  "context"
+ ],
+ "fields": [
+  {
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "App",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Module"
+  },
+  {
+   "fieldname": "source_path",
+   "fieldtype": "Small Text",
+   "label": "Source Path"
+  },
+  {
+   "fieldname": "source_text",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Source Text",
+   "reqd": 1
+  },
+  {
+   "fieldname": "context",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Context"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-27 01:40:00.000000",
+ "module": "Persian Translation",
+ "name": "Persian Translation Source",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

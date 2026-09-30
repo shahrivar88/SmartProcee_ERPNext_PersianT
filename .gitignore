@@ -5,3 +5,5 @@ __pycache__/
 compose.smart-process.before-persian.yaml
 compose.smart-process.with-persian.yaml
 translation-build.json
+smartprocee_erpnext_persiant/translations/*.bak-*
+smartprocee_erpnext_persiant/translations/.fa.csv.tmp-*

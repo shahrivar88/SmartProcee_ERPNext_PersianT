@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-29 22:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "family_name",
+  "css_family",
+  "source",
+  "is_active",
+  "faces"
+ ],
+ "fields": [
+  {
+   "fieldname": "family_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Family Name",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "css_family",
+   "fieldtype": "Data",
+   "label": "CSS Family",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Source",
+   "options": "Bundled\nUploaded",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Active",
+   "read_only": 1
+  },
+  {
+   "fieldname": "faces",
+   "fieldtype": "Table",
+   "label": "Faces",
+   "options": "Persian Font Face",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-29 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Persian Translation",
+ "name": "Persian Font Family",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

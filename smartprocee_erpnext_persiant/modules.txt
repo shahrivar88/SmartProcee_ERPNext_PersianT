@@ -1,1 +1,1 @@
-SmartProcee_ERPNext_PersianT
+Persian Translation
