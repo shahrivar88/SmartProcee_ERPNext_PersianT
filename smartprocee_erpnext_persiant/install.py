@@ -2,6 +2,7 @@ from pathlib import Path
 import shutil
 
 import frappe
+from frappe.core.doctype.navbar_settings.navbar_settings import sync_standard_items
 from frappe.core.doctype.translation.translation import clear_user_translation_cache
 
 from smartprocee_erpnext_persiant.persian_translation.system_font.bundled import register_bundled_family
@@ -34,7 +35,8 @@ def sync_public_assets():
 
 
 def after_install():
-	"""Install font assets. Administrator Translation rows are left in place."""
+	"""Install font assets and the Desk menu item. Administrator Translation rows are left in place."""
+	sync_standard_items()
 	clear_user_translation_cache("fa")
 	frappe.clear_cache()
 	sync_public_assets()
@@ -89,6 +91,15 @@ def delete_legacy_external_icon():
 			)
 
 
+def remove_navbar_item():
+	"""Remove the Desk menu item now; migrate would only drop it after the app is gone."""
+	settings = frappe.get_single("Navbar Settings")
+	items = [row for row in settings.settings_dropdown if row.item_label != MENU_LABEL]
+	if len(items) != len(settings.settings_dropdown):
+		settings.set("settings_dropdown", items)
+		settings.save(ignore_permissions=True)
+
+
 def before_uninstall():
 	"""Restore previously displaced translations, then remove this site's font files.
 
@@ -96,6 +107,7 @@ def before_uninstall():
 	in place; other sites may still have this app installed.
 	"""
 	delete_legacy_external_icon()
+	remove_navbar_item()
 	for name in (MENU_LABEL, "Persian Translation"):
 		if frappe.db.exists("Workspace Sidebar", name):
 			frappe.delete_doc(

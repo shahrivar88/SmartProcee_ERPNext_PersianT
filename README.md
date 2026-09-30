@@ -18,7 +18,7 @@ bench --site <site-name> install-app smartprocee_erpnext_persiant
 bench --site <site-name> migrate
 ```
 
-Restart web and workers after install. The Desk home and sidebar label is `فارسی‌ساز`. It opens the page `persian-translation-manager`. Only a System Manager can open that page or call its APIs.
+Restart web and workers after install. The Desk home and sidebar label is `فارسی‌ساز`. It opens the page `persian-translation-manager`. Inside Desk, the same item is in the sidebar header menu on every page. Only a System Manager can open that page or call its APIs.
 
 ## Update
 
@@ -38,7 +38,7 @@ bench --site <site-name> uninstall-app smartprocee_erpnext_persiant
 bench --site <site-name> clear-cache
 ```
 
-Uninstall removes this app's DocTypes, page, sidebar, and home icon. It does not delete Frappe Translation rows. It restores older backup rows only when that same key is missing. It keeps the font copy under `sites/assets`, because all sites on the bench share that folder.
+Uninstall removes this app's DocTypes, page, sidebar, home icon, and Desk menu item. It does not delete Frappe Translation rows. It restores older backup rows only when that same key is missing. It keeps the font copy under `sites/assets`, because all sites on the bench share that folder.
 
 ## Font license
 

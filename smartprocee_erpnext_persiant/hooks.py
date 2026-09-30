@@ -16,6 +16,17 @@ add_to_apps_screen = [
 	}
 ]
 
+standard_navbar_items = [
+	{
+		"item_label": app_title,
+		"item_type": "Action",
+		"action": f"frappe.set_route('persian-translation-manager', {{sidebar: '{app_title}'}})",
+		"condition": "frappe.user.has_role('System Manager')",
+		"icon": "languages",
+		"is_standard": 1,
+	}
+]
+
 after_install = "smartprocee_erpnext_persiant.install.after_install"
 before_uninstall = "smartprocee_erpnext_persiant.install.before_uninstall"
 after_migrate = [
