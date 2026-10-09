@@ -16,6 +16,13 @@
    "link_to": "persian-system-font-manager",
    "link_type": "Page",
    "type": "Link"
+  },
+  {
+   "icon": "settings",
+   "label": "مدیریت سازگاری راست‌به‌چپ",
+   "link_to": "Persian RTL Settings",
+   "link_type": "DocType",
+   "type": "Link"
   }
  ],
  "module": "Persian Translation",

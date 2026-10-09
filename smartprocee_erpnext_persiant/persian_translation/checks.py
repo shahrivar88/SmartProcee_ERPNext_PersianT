@@ -5,8 +5,10 @@ from pathlib import Path
 
 import frappe
 from frappe.translate import clear_cache, get_all_translations
+from frappe.utils import cint
 
 from smartprocee_erpnext_persiant.install import after_install, restore_displaced_translations
+from smartprocee_erpnext_persiant.persian_translation import operations, ownership
 from smartprocee_erpnext_persiant.persian_translation.catalogue import (
 	catalogue_map,
 	merge_overrides,
@@ -31,6 +33,25 @@ from smartprocee_erpnext_persiant.persian_translation.service import (
 from smartprocee_erpnext_persiant.persian_translation.validate import translation_error
 
 MARKER = "__PTM_TEST__"
+OPT_IN = "persianizer_allow_destructive_checks"
+
+
+def require_test_site():
+	"""Refuse to run on a site that was not explicitly opted in as a test site.
+
+	The checks overwrite and delete real Persian rows, restore snapshots and rerun
+	the install hooks, so a site needs two flags in its `site_config.json`: the
+	dedicated `persianizer_allow_destructive_checks` and Frappe's own
+	`allow_tests`, which `bench run-tests` needs as well. `developer_mode` is no
+	signal: production sites run with it too.
+	"""
+	missing = [key for key in (OPT_IN, "allow_tests") if not cint(frappe.conf.get(key))]
+	if missing:
+		frappe.throw(
+			"checks.run is a destructive test harness and only runs on a test site. "
+			f"This site is missing: {', '.join(missing)}. Nothing was changed.",
+			frappe.PermissionError,
+		)
 
 
 def _hash(path: Path) -> str:
@@ -38,17 +59,21 @@ def _hash(path: Path) -> str:
 
 
 def _cleanup():
+	# Every key of `or_filters` is ORed, so the language belongs in `filters`;
+	# otherwise `language = fa` alone matches every Persian translation.
 	names = frappe.get_all(
 		"Translation",
-		or_filters=[
-			{"language": "fa", "source_text": ["like", f"{MARKER}%"]},
-			{"language": "fa", "translated_text": ["like", f"{MARKER}%"]},
-		],
+		filters={"language": "fa"},
+		or_filters={
+			"source_text": ["like", f"{MARKER}%"],
+			"translated_text": ["like", f"{MARKER}%"],
+		},
 		pluck="name",
 		limit_page_length=0,
 	)
 	for name in names:
 		frappe.delete_doc("Translation", name, force=1, ignore_permissions=True)
+	_forget_marker_ownership()
 	backups = []
 	if frappe.db.table_exists("Persian Translation Backup"):
 		backups = frappe.get_all(
@@ -63,6 +88,43 @@ def _cleanup():
 	frappe.db.commit()
 
 
+def _forget_marker_ownership():
+	"""Drop the ownership claims these checks made, once their rows are gone.
+
+	The checks also write real source strings such as "Customer Name". Ownership
+	outlives a deleted row by design, so without this every run would leave a
+	claim behind. A claim is removed only when its source or its last written
+	value carries the marker and no Persian row exists for it any more.
+	"""
+	if not frappe.db.table_exists(ownership.DOCTYPE):
+		return
+	claims = frappe.get_all(
+		ownership.DOCTYPE,
+		or_filters={
+			"source_text": ["like", f"{MARKER}%"],
+			"last_value": ["like", f"{MARKER}%"],
+		},
+		fields=["name", "source_text", "context"],
+		limit_page_length=0,
+	)
+	if not claims:
+		return
+	# A row saved from Desk may store its empty context as NULL.
+	live = {
+		(row.source_text, row.context or "")
+		for row in frappe.get_all(
+			"Translation",
+			filters={"language": "fa", "source_text": ["in", list({claim.source_text for claim in claims})]},
+			fields=["source_text", "context"],
+			limit_page_length=0,
+		)
+	}
+	for claim in claims:
+		if (claim.source_text, claim.context or "") not in live:
+			frappe.delete_doc(ownership.DOCTYPE, claim.name, force=1, ignore_permissions=True)
+	ownership.clear_cache()
+
+
 def _check(condition, message):
 	if not condition:
 		raise AssertionError(message)
@@ -70,6 +132,7 @@ def _check(condition, message):
 
 
 def run():
+	require_test_site()
 	path = catalogue_path()
 	before = _hash(path)
 	before_count = len(read_catalogue(path))
@@ -179,7 +242,6 @@ def run():
 	workbook_rows = [
 		{
 			"app": "test",
-			"module": "",
 			"source_path": "",
 			"source_text": f"{MARKER} PLAIN",
 			"context": "",
@@ -188,7 +250,6 @@ def run():
 		},
 		{
 			"app": "test",
-			"module": "",
 			"source_path": "",
 			"source_text": f"{MARKER} OTHER",
 			"context": "",
@@ -267,25 +328,25 @@ def _check_excel_grouping():
 	twin_app = "a_very_long_custom_application_name_two"
 	odd_app = "odd:app/name?"
 	spec = [
-		("erpnext", "Stock"),
-		("frappe", "Core"),
-		("erpnext", "Accounts"),
-		("frappe", "Desk"),
-		(long_app, "One"),
-		(twin_app, "Two"),
-		(odd_app, "Odd"),
+		("erpnext", "فیلد", "Sales Invoice.customer"),
+		("frappe", "فیلد", "Customer.name"),
+		("erpnext", "گزارش", "Report: Stock Balance"),
+		("frappe", "منو", "Workspace: Selling"),
+		(long_app, "صفحه", "Page: x"),
+		(twin_app, "دکمه", "Page: y"),
+		(odd_app, "سایر", ""),
 	]
 	rows = [
 		{
 			"app": app,
-			"module": module,
-			"source_path": "",
-			"source_text": f"{MARKER} {app} {module}",
+			"kind": kind,
+			"location": place,
+			"source_text": f"{MARKER} {app} {kind}",
 			"context": "",
 			"current_translation": "",
-			"identity": translation_identity(f"{MARKER} {app} {module}", ""),
+			"identity": translation_identity(f"{MARKER} {app} {kind}", ""),
 		}
-		for app, module in spec
+		for app, kind, place in spec
 	]
 	book = load_workbook(BytesIO(build_workbook(rows)))
 	titles = book.sheetnames
@@ -295,8 +356,29 @@ def _check_excel_grouping():
 		values = list(book[title].iter_rows(min_row=2, values_only=True))
 		apps = {row[0] for row in values}
 		_check(len(apps) == 1, f"sheet {title} holds rows of one app")
-	modules = {row[1] for row in book["erpnext"].iter_rows(min_row=2, values_only=True)}
-	_check(modules == {"Stock", "Accounts"}, "erpnext modules stay in the Module column of one sheet")
+	header = [cell.value for cell in book["erpnext"][1]]
+	_check(
+		header
+		== [
+			"برنامه",
+			"نوع",
+			"محل استفاده",
+			"متن اصلی",
+			"ترجمه فعلی",
+			"ترجمه جدید",
+			"وضعیت",
+			"یادداشت",
+			"زمینه",
+			"شناسه ردیف",
+		],
+		f"excel header matches the manager table: {header}",
+	)
+	_check("ماژول" not in header, "the module column is not written to the workbook")
+	locations = {row[2] for row in book["erpnext"].iter_rows(min_row=2, values_only=True)}
+	_check(
+		locations == {"Sales Invoice.customer", "Report: Stock Balance"},
+		"the readable place stays in the محل استفاده column of one sheet",
+	)
 	_check(load_workbook(BytesIO(build_workbook(rows))).sheetnames == titles, "sheet titles are deterministic")
 
 
@@ -347,7 +429,6 @@ def _exercise_manager_apis():
 	workbook_rows = [
 		{
 			"app": "test",
-			"module": "",
 			"source_path": "",
 			"source_text": f"{MARKER} IMPORT",
 			"context": "",
@@ -356,7 +437,6 @@ def _exercise_manager_apis():
 		},
 		{
 			"app": "test",
-			"module": "",
 			"source_path": "",
 			"source_text": "Customer Name",
 			"context": "",
@@ -366,7 +446,7 @@ def _exercise_manager_apis():
 	]
 	book = load_workbook(BytesIO(build_workbook(workbook_rows)))
 	sheet = book.active
-	new_column = [cell.value for cell in sheet[1]].index("New Persian Translation") + 1
+	new_column = [cell.value for cell in sheet[1]].index("ترجمه جدید") + 1
 	sheet.cell(2, new_column).value = f"{MARKER} واردشده"
 	sheet.cell(3, new_column).value = ""
 	payload = BytesIO()
@@ -374,14 +454,47 @@ def _exercise_manager_apis():
 	from frappe.utils.file_manager import save_file
 
 	uploaded = save_file("ptm-check.xlsx", payload.getvalue(), None, None, is_private=1)
+	extra_operations = []
+	extra_snapshots = []
 	try:
 		preview = preview_import(uploaded.file_url)
+		extra_operations.append(preview["name"])
 		_check(
-			preview["new"] == 1 and preview["unchanged"] == 1 and preview["error_count"] == 0,
+			preview["status"] == "Queued" and preview["applied"] == 0,
+			"excel preview returns a queued record before any row is read",
+		)
+		operations.run_operation(preview["name"])
+		preview = operations.get_operation(preview["name"])
+		report = preview["detail"]["report"]
+		_check(
+			report["new"] == 1 and report["unchanged"] == 1 and preview["error_count"] == 0,
 			"excel preview counts one new row and one blank row",
 		)
+		_check(
+			preview["planned"] == 0 and preview["checkpoint"] == 0,
+			"a preview writes nothing and holds no checkpoint",
+		)
+
 		applied = apply_import(uploaded.file_url)
-		_check(applied["saved"] == 1, "excel import writes only the changed row")
+		extra_operations.append(applied["name"])
+		_check(
+			applied["status"] == "Queued" and applied["applied"] == 0,
+			"the apply request returns a queued record before any row is written",
+		)
+		_check(
+			not applied["detail"].get("undo_snapshot"),
+			"a queued apply captures no undo point before its worker starts",
+		)
+		operations.run_operation(applied["name"])
+		applied = operations.get_operation(applied["name"])
+		undo = applied["detail"].get("undo_snapshot")
+		if undo:
+			extra_snapshots.append(undo)
+		_check(applied["status"] == "Completed" and applied["applied"] == 1, "excel import writes only the changed row")
+		_check(
+			applied["checkpoint"] == applied["planned"] == 1,
+			"the committed checkpoint agrees with the plan",
+		)
 		clear_cache()
 		persian = get_all_translations("fa")
 		_check(persian.get(f"{MARKER} IMPORT") == f"{MARKER} واردشده", "imported translation is visible to Frappe")
@@ -389,9 +502,17 @@ def _exercise_manager_apis():
 			persian.get("Customer Name") == f"{MARKER} نام مشتری",
 			"a blank excel cell does not delete an existing translation",
 		)
+		_check_restore_points()
 	finally:
+		for name in extra_operations:
+			if frappe.db.exists(operations.OPERATION, name):
+				frappe.delete_doc(operations.OPERATION, name, force=1, ignore_permissions=True)
+		for name in extra_snapshots:
+			if frappe.db.exists("Persian Snapshot", name):
+				frappe.delete_doc("Persian Snapshot", name, force=1, ignore_on_trash=1, ignore_permissions=True)
 		if uploaded and uploaded.name:
 			frappe.delete_doc("File", uploaded.name, force=1, ignore_permissions=True)
+		frappe.db.commit()
 
 	frappe.set_user("Guest")
 	try:
@@ -405,7 +526,94 @@ def _exercise_manager_apis():
 		frappe.set_user("Administrator")
 
 
+def _check_restore_points():
+	"""Restore points: immutability, queued preview, targeted recovery and undo.
+
+	Every record this creates is removed at the end, so the checks leave the site
+	as they found it.
+	"""
+	from smartprocee_erpnext_persiant.persian_translation import operations, service, snapshots
+
+	created = []
+	made = []
+	key = f"{MARKER} RESTORE"
+	original = "پیش از نسخه"
+	changed = "پس از نسخه"
+	save_translations([{"source_text": key, "context": "", "translated_text": original}])
+	clear_cache()
+	try:
+		baseline = snapshots.capture(snapshots.MANUAL, f"{MARKER} baseline", immutable=False)
+		created.append(baseline["name"])
+		doc = frappe.get_doc("Persian Snapshot", baseline["name"])
+		doc.immutable = 1
+		doc.save()
+		created.append(doc.name)
+		doc = frappe.get_doc("Persian Snapshot", doc.name)
+		doc.note = "باید رد شود"
+		rejected = False
+		try:
+			doc.save()
+		except frappe.ValidationError:
+			rejected = True
+		_check(rejected, "an immutable restore point cannot be edited")
+
+		save_translations([{"source_text": key, "context": "", "translated_text": changed}])
+		clear_cache()
+		_check(
+			_service_effective(key) == changed,
+			"the translation changed after the restore point was taken",
+		)
+
+		preview = service.preview_restore(baseline["name"])
+		made.append(preview["name"])
+		_check(
+			preview["status"] == "Queued" and preview["applied"] == 0,
+			"the restore preview is queued instead of running inside the request",
+		)
+		operations.run_operation(preview["name"])
+		preview = operations.get_operation(preview["name"])
+		_check(preview["status"] == "Completed", "the queued restore preview finishes")
+		sample = {(row["source_text"], row["context"]): row["value"] for row in preview["detail"]["preview"]["sample"]}
+		_check(sample.get((key, "")) == original, "the preview shows the recorded value, not the current one")
+		_check(_service_effective(key) == changed, "the preview did not change a value")
+
+		restore = operations.start_restore(baseline["name"], mode="values", confirm=1)
+		made.append(restore["name"])
+		_check(
+			not restore["detail"].get("undo_snapshot"),
+			"a queued restore captures no undo point before its worker starts",
+		)
+		operations.run_operation(restore["name"])
+		restore = operations.get_operation(restore["name"])
+		_check(restore["status"] == "Completed", "the targeted restore finishes")
+		undo = restore["detail"].get("undo_snapshot")
+		if undo:
+			created.append(undo)
+		_check(bool(undo), "the restore records its own undo point before it writes")
+		clear_cache()
+		_check(_service_effective(key) == original, "the targeted restore brought the recorded value back")
+	finally:
+		for name in made:
+			if frappe.db.exists(operations.OPERATION, name):
+				frappe.delete_doc(operations.OPERATION, name, force=1, ignore_permissions=True)
+		for name in created:
+			if frappe.db.exists("Persian Snapshot", name):
+				frappe.delete_doc("Persian Snapshot", name, force=1, ignore_on_trash=1, ignore_permissions=True)
+		for name in frappe.get_all(
+			"Translation", filters={"source_text": key}, pluck="name", limit_page_length=0
+		):
+			frappe.delete_doc("Translation", name, force=1, ignore_permissions=True)
+		print("OK restore points")
+
+
+def _service_effective(source):
+	from smartprocee_erpnext_persiant.persian_translation.service import effective_translation
+
+	return effective_translation(source, "")
+
+
 def seed_persistence_row():
+	require_test_site()
 	_cleanup()
 	save_translations(
 		[{"source_text": f"{MARKER} RESTART", "context": "", "translated_text": "پس از راه‌اندازی"}]
@@ -415,6 +623,7 @@ def seed_persistence_row():
 
 
 def verify_persistence_row():
+	require_test_site()
 	stored = frappe.db.get_value(
 		"Translation",
 		{"language": "fa", "source_text": f"{MARKER} RESTART"},

@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 00:00:00.000000",
+ "description": "تنظیمات سازگاری راست‌به‌چپ برای برنامه‌های تک‌صفحه‌ای مثل CRM. ساختار فنی آداپتورها در کد است؛ اینجا فقط روشن/خاموش، پذیرش نسخهٔ تست‌نشده و استفاده از فونت فارسی سیستم ذخیره می‌شود.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "diagnostic_mode",
+  "section_break_adapters",
+  "adapters",
+  "section_break_exclusions",
+  "exclusions_hint",
+  "extra_exclusions"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "description": "تزریق dir=\"rtl\" و شیت آداپتور برای برنامه‌های پشتیبانی‌شده، فقط در زبان فارسی.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "فعال‌سازی سازگاری راست‌به‌چپ"
+  },
+  {
+   "default": "0",
+   "description": "ثبت دلیل رد‌شدن هر آداپتور در لاگ. برای عیب‌یابی موقت.",
+   "fieldname": "diagnostic_mode",
+   "fieldtype": "Check",
+   "label": "حالت عیب‌یابی"
+  },
+  {
+   "fieldname": "section_break_adapters",
+   "fieldtype": "Section Break",
+   "label": "آداپتورها"
+  },
+  {
+   "description": "ردیف‌ها از روی کد ساخته می‌شوند. فقط «فعال»، «پذیرش نسخهٔ تست‌نشده»، «استفاده از فونت فارسی سیستم» (برای آداپتورهایی که پشتیبانی می‌کنند) و یادداشت مدیر قابل تغییر است.",
+   "fieldname": "adapters",
+   "fieldtype": "Table",
+   "label": "آداپتورهای راست‌به‌چپ",
+   "options": "Persian RTL Adapter"
+  },
+  {
+   "fieldname": "section_break_exclusions",
+   "fieldtype": "Section Break",
+   "label": "استثناهای افزودهٔ مدیر"
+  },
+  {
+   "fieldname": "exclusions_hint",
+   "fieldtype": "Heading",
+   "label": "استثناها فقط زمانی لازم است که یک ناحیه پس از فعال‌سازی درست نمایش داده نشود."
+  },
+  {
+   "description": "استثناهای فنی خود آداپتور در کد است. اینجا فقط مواردی را اضافه کنید که در محیط شما مشکل داشتند.",
+   "fieldname": "extra_exclusions",
+   "fieldtype": "Table",
+   "label": "استثناهای افزوده",
+   "options": "Persian RTL Exclusion"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-09 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Persian RTL",
+ "name": "Persian RTL Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

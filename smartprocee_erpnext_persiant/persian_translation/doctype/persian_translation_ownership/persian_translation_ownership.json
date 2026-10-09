@@ -1,0 +1,80 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:key_hash",
+ "creation": "2026-10-08 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "key_hash",
+  "source_text",
+  "context",
+  "last_value",
+  "app",
+  "last_written_at"
+ ],
+ "fields": [
+  {
+   "description": "sha256 of (source_text, context). The document name: one record per string.",
+   "fieldname": "key_hash",
+   "fieldtype": "Data",
+   "label": "Key",
+   "read_only": 1,
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "source_text",
+   "fieldtype": "Long Text",
+   "label": "Source Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "context",
+   "fieldtype": "Long Text",
+   "label": "Context",
+   "read_only": 1
+  },
+  {
+   "description": "The value this app last wrote for this string.",
+   "fieldname": "last_value",
+   "fieldtype": "Long Text",
+   "label": "Last Written Value",
+   "read_only": 1
+  },
+  {
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "label": "App",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_written_at",
+   "fieldtype": "Datetime",
+   "label": "Last Written",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-08 20:00:00.000000",
+ "module": "Persian Translation",
+ "name": "Persian Translation Ownership",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "search_fields": "source_text",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "source_text",
+ "track_changes": 0
+}

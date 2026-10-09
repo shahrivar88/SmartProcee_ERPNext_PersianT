@@ -248,16 +248,19 @@ def _modules_outside_standard_extractor(app):
 
 
 def _scan_app_messages(app, bucket, errors):
+	"""Collect an app's messages. Returns False when part of the extraction failed."""
+	ok = True
 	try:
 		messages = get_messages_for_app(app, deduplicate=False)
 	except Exception as exc:
 		errors.append(f"{app}: {exc}")
+		ok = False
 		messages = []
 	for item in messages:
 		_consume_message(app, bucket, item)
 	modules = _modules_outside_standard_extractor(app)
 	if not modules:
-		return
+		return ok
 	from frappe.translate import get_messages_from_doctype, get_messages_from_page
 
 	try:
@@ -280,21 +283,26 @@ def _scan_app_messages(app, bucket, errors):
 				_consume_message(app, bucket, item, page.module or "")
 	except Exception as exc:
 		errors.append(f"{app}: {exc}")
+		ok = False
+	return ok
 
 
 def collect_messages(apps=None):
+	"""Return (rows, errors, failed_apps) for the given installed apps."""
 	frappe.flags.scanned_files = set()
 	installed = list(apps or frappe.get_installed_apps(_ensure_on_bench=True))
 	allowed = set(installed)
 	bucket = {}
 	errors = []
+	failed = []
 	_scan_menu_records(bucket)
 	_scan_workspace_children(bucket)
 	for app in installed:
 		_scan_json_files(app, bucket)
-		_scan_app_messages(app, bucket, errors)
+		if not _scan_app_messages(app, bucket, errors):
+			failed.append(app)
 	rows = [row for row in bucket.values() if row["app"] in allowed]
-	return rows, errors
+	return rows, errors, failed
 
 
 def replace_index(rows, apps):
@@ -344,14 +352,41 @@ def replace_index(rows, apps):
 	return len(values)
 
 
+def reconcile_index(installed_apps) -> int:
+	"""Drop index rows of apps that are no longer installed.
+
+	Only the scan index (`Persian Translation Source`) is touched. Standard
+	`Translation` rows are never removed. An empty installed list is a no-op:
+	`frappe.get_installed_apps` returns `[]` while the app list is being built,
+	and wiping the whole index there would be destructive.
+	"""
+	allowed = {app for app in installed_apps if app}
+	if not allowed:
+		return 0
+	indexed = frappe.db.sql(f"select distinct app from `tab{SOURCE_DOCTYPE}`", pluck=True)
+	stale = sorted(app for app in indexed if app and app not in allowed)
+	for app in stale:
+		frappe.db.delete(SOURCE_DOCTYPE, {"app": app})
+	return len(stale)
+
+
 def run_scan(apps=None):
 	set_scan_status(status="running", message="در حال اسکن", started=now(), finished="", strings=0, errors=[])
 	try:
+		full_scan = not apps
 		installed = list(apps or frappe.get_installed_apps(_ensure_on_bench=True))
-		rows, errors = collect_messages(installed)
-		count = replace_index(rows, installed)
+		rows, errors, failed = collect_messages(installed)
+		# An app whose extraction failed keeps its previous index rows.
+		scanned = [app for app in installed if app not in set(failed)]
+		indexable = set(scanned)
+		rows = [row for row in rows if row["app"] in indexable]
+		count = replace_index(rows, scanned)
+		# A full scan knows the complete installed set, so stale apps are dropped.
+		removed = reconcile_index(installed) if full_scan else 0
 		frappe.db.commit()
 		message = f"{count} متن از برنامه‌های نصب‌شده پیدا شد."
+		if removed:
+			message += f" {removed} برنامهٔ حذف‌شده از ایندکس پاک شد."
 		if errors:
 			message += " برخی برنامه‌ها خطا داشتند."
 		set_scan_status(
@@ -361,7 +396,7 @@ def run_scan(apps=None):
 			errors=errors[:20],
 			finished=now(),
 		)
-		return {"strings": count, "errors": errors}
+		return {"strings": count, "errors": errors, "stale_apps_removed": removed}
 	except Exception as exc:
 		frappe.db.rollback()
 		set_scan_status(status="error", message=str(exc), finished=now())

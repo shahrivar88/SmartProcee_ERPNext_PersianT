@@ -1,0 +1,256 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:PTOP-{#####}",
+ "creation": "2026-10-08 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "kind",
+  "status",
+  "file_url",
+  "file_name",
+  "snapshot",
+  "section_counts",
+  "total_rows",
+  "planned",
+  "processed",
+  "column_break_counts",
+  "applied",
+  "unchanged",
+  "rejected",
+  "failed",
+  "section_progress",
+  "checkpoint",
+  "resume_count",
+  "cancel_requested",
+  "column_break_progress",
+  "started_at",
+  "heartbeat",
+  "finished_at",
+  "job_id",
+  "section_lease",
+  "lock_key",
+  "lease_token",
+  "section_result",
+  "error_count",
+  "summary",
+  "detail",
+  "errors"
+ ],
+ "fields": [
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Operation",
+   "options": "import_preview\nimport_apply\nsnapshot_preview\nsnapshot_restore",
+   "reqd": 1
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Queued\nRunning\nCompleted\nPartial\nFailed\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "file_url",
+   "fieldtype": "Data",
+   "label": "Workbook",
+   "read_only": 1
+  },
+  {
+   "fieldname": "file_name",
+   "fieldtype": "Data",
+   "label": "Workbook Name",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.kind=='snapshot_restore' || doc.kind=='snapshot_preview'",
+   "fieldname": "snapshot",
+   "fieldtype": "Link",
+   "label": "Snapshot",
+   "options": "Persian Snapshot",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_counts",
+   "fieldtype": "Section Break",
+   "label": "Counts"
+  },
+  {
+   "fieldname": "total_rows",
+   "fieldtype": "Int",
+   "label": "Workbook Rows",
+   "read_only": 1
+  },
+  {
+   "fieldname": "planned",
+   "fieldtype": "Int",
+   "label": "Rows To Apply",
+   "read_only": 1
+  },
+  {
+   "fieldname": "processed",
+   "fieldtype": "Int",
+   "label": "Rows Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_counts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "applied",
+   "fieldtype": "Int",
+   "label": "Applied",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unchanged",
+   "fieldtype": "Int",
+   "label": "Unchanged",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rejected",
+   "fieldtype": "Int",
+   "label": "Rejected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "failed",
+   "fieldtype": "Int",
+   "label": "Failed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_progress",
+   "fieldtype": "Section Break",
+   "label": "Progress"
+  },
+  {
+   "description": "Highest plan position whose write was committed. Monotonic, and the resume cursor: only actions with a greater position are still outstanding. The plan itself is stored on the first pass, so a resume continues in the very same list. `processed` counts the actions committed overall.",
+   "fieldname": "checkpoint",
+   "fieldtype": "Int",
+   "label": "Checkpoint",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resume_count",
+   "fieldtype": "Int",
+   "label": "Resumes",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cancel_requested",
+   "fieldtype": "Check",
+   "label": "Cancel Requested"
+  },
+  {
+   "fieldname": "column_break_progress",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started",
+   "read_only": 1
+  },
+  {
+   "fieldname": "heartbeat",
+   "fieldtype": "Datetime",
+   "label": "Heartbeat",
+   "read_only": 1
+  },
+  {
+   "fieldname": "finished_at",
+   "fieldtype": "Datetime",
+   "label": "Finished",
+   "read_only": 1
+  },
+  {
+   "fieldname": "job_id",
+   "fieldtype": "Data",
+   "label": "Background Job",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_lease",
+   "fieldtype": "Section Break",
+   "label": "Ownership"
+  },
+  {
+   "description": "The one lease this operation holds while it may write. Set for an apply or a restore, empty for a preview. The column is unique, so the database itself refuses a second writer; the value is cleared when the operation finishes.",
+   "fieldname": "lock_key",
+   "fieldtype": "Data",
+   "label": "Lease",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "description": "The token this worker was given when it claimed the operation. A worker that no longer owns this token must stop writing, which is how a recovered stale operation is taken over safely.",
+   "fieldname": "lease_token",
+   "fieldtype": "Data",
+   "label": "Lease Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_result",
+   "fieldtype": "Section Break",
+   "label": "Result"
+  },
+  {
+   "fieldname": "error_count",
+   "fieldtype": "Int",
+   "label": "Error Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Summary",
+   "read_only": 1
+  },
+  {
+   "description": "JSON payload for the manager: report samples, truncation flags.",
+   "fieldname": "detail",
+   "fieldtype": "Long Text",
+   "label": "Detail",
+   "read_only": 1
+  },
+  {
+   "description": "Reasons rows were not applied. Capped; `error_count` is the real total.",
+   "fieldname": "errors",
+   "fieldtype": "Table",
+   "label": "Rejected Rows",
+   "options": "Persian Translation Operation Error",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-09 15:00:00.000000",
+ "module": "Persian Translation",
+ "name": "Persian Translation Operation",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

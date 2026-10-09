@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:PSNAP-{#####}",
+ "creation": "2026-10-08 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "kind",
+  "label",
+  "immutable",
+  "captured_at",
+  "captured_by",
+  "column_break_head",
+  "schema_version",
+  "translations_count",
+  "fonts_count",
+  "rtl_enabled",
+  "section_note",
+  "note",
+  "summary",
+  "payload"
+ ],
+ "fields": [
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Kind",
+   "options": "install_baseline\nadopted_state\npre_apply\npre_font\npre_rtl\npre_restore\nmanual",
+   "reqd": 1
+  },
+  {
+   "description": "Shown to the administrator. Says exactly what the snapshot holds.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "An immutable snapshot can never be edited or deleted.",
+   "fieldname": "immutable",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Immutable"
+  },
+  {
+   "fieldname": "captured_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Captured At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "captured_by",
+   "fieldtype": "Link",
+   "label": "Captured By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "schema_version",
+   "fieldtype": "Int",
+   "label": "Snapshot Format",
+   "read_only": 1
+  },
+  {
+   "fieldname": "translations_count",
+   "fieldtype": "Int",
+   "label": "Persian Translation Rows",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fonts_count",
+   "fieldtype": "Int",
+   "label": "Font Families",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rtl_enabled",
+   "fieldtype": "Check",
+   "label": "RTL Was Enabled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_note",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Summary",
+   "read_only": 1
+  },
+  {
+   "description": "Compressed JSON of the Persianizer-owned state. Written once, never rewritten.",
+   "fieldname": "payload",
+   "fieldtype": "Long Text",
+   "label": "Payload",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-09 15:00:00.000000",
+ "module": "Persian Translation",
+ "name": "Persian Snapshot",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

@@ -1,0 +1,140 @@
+/* ==========================================================================
+   Persian RTL adapter for Frappe CRM
+   --------------------------------------------------------------------------
+   Loaded by smartprocee_erpnext_persiant.persian_rtl.runtime.after_request,
+   under a `fa` session, on /crm/* and /crm-form/* only.
+
+   CRM 1.85.1 ships Tailwind CSS 4 built output that uses only *physical*
+   directional utilities. `dir="rtl"` alone would fix the reading direction of
+   text while leaving every margin, padding, offset, border edge, corner and
+   alignment anchored to the left. Each rule below cancels the physical
+   declaration and re-states it on the mirrored logical side, so the layout
+   follows the document direction.
+
+   Scope: the 87 base-variant classes, plus the two `sm:` utilities and the one
+   `group-has` utility, that the CRM 1.85.1 build actually emits. Nothing here
+   is generated at runtime and nothing in CRM is modified.
+
+   Deliberately NOT mirrored:
+     .inset-x-0 / .inset-x-2   symmetric (left and right receive equal values)
+     .left-1\/2                a centring offset; mirroring it would move the
+                               element off centre by its own width
+
+   Known limitation: this is a cancelling override layer, not a source rewrite.
+   When one element carries two non-zero utilities of the same family at once
+   (e.g. `ml-2` with `mr-3`) only the later rule below survives for that shared
+   axis. Verify visually before release; add an exclusion for any real case.
+   ========================================================================== */
+
+/* --- margin-left -> inline start (right in RTL) --------------------------- */
+[dir="rtl"] .ml-0{margin-left:0;margin-inline-start:0}
+[dir="rtl"] .ml-0\.5{margin-left:0;margin-inline-start:.125rem}
+[dir="rtl"] .ml-1{margin-left:0;margin-inline-start:.25rem}
+[dir="rtl"] .ml-1\.5{margin-left:0;margin-inline-start:.375rem}
+[dir="rtl"] .ml-2{margin-left:0;margin-inline-start:.5rem}
+[dir="rtl"] .ml-3{margin-left:0;margin-inline-start:.75rem}
+[dir="rtl"] .ml-5{margin-left:0;margin-inline-start:1.25rem}
+[dir="rtl"] .ml-6{margin-left:0;margin-inline-start:1.5rem}
+[dir="rtl"] .ml-13{margin-left:0;margin-inline-start:3.25rem}
+[dir="rtl"] .ml-auto{margin-left:0;margin-inline-start:auto}
+
+/* --- margin-right -> inline end (left in RTL) ----------------------------- */
+[dir="rtl"] .mr-0{margin-right:0;margin-inline-end:0}
+[dir="rtl"] .mr-0\.5{margin-right:0;margin-inline-end:.125rem}
+[dir="rtl"] .mr-1{margin-right:0;margin-inline-end:.25rem}
+[dir="rtl"] .mr-1\.5{margin-right:0;margin-inline-end:.375rem}
+[dir="rtl"] .mr-2{margin-right:0;margin-inline-end:.5rem}
+[dir="rtl"] .mr-3{margin-right:0;margin-inline-end:.75rem}
+[dir="rtl"] .mr-5{margin-right:0;margin-inline-end:1.25rem}
+[dir="rtl"] .mr-auto{margin-right:0;margin-inline-end:auto}
+
+/* --- padding-left -> inline start ---------------------------------------- */
+[dir="rtl"] .pl-1{padding-left:0;padding-inline-start:.25rem}
+[dir="rtl"] .pl-1\.5{padding-left:0;padding-inline-start:.375rem}
+[dir="rtl"] .pl-2{padding-left:0;padding-inline-start:.5rem}
+[dir="rtl"] .pl-3{padding-left:0;padding-inline-start:.75rem}
+[dir="rtl"] .pl-3\.5{padding-left:0;padding-inline-start:.875rem}
+[dir="rtl"] .pl-4{padding-left:0;padding-inline-start:1rem}
+[dir="rtl"] .pl-4\.5{padding-left:0;padding-inline-start:1.125rem}
+[dir="rtl"] .pl-5{padding-left:0;padding-inline-start:1.25rem}
+[dir="rtl"] .pl-6{padding-left:0;padding-inline-start:1.5rem}
+[dir="rtl"] .pl-8{padding-left:0;padding-inline-start:2rem}
+[dir="rtl"] .pl-11\.5{padding-left:0;padding-inline-start:2.875rem}
+[dir="rtl"] .pl-\[10px\]{padding-left:0;padding-inline-start:10px}
+
+/* --- padding-right -> inline end ----------------------------------------- */
+[dir="rtl"] .pr-0{padding-right:0;padding-inline-end:0}
+[dir="rtl"] .pr-0\.5{padding-right:0;padding-inline-end:.125rem}
+[dir="rtl"] .pr-1{padding-right:0;padding-inline-end:.25rem}
+[dir="rtl"] .pr-1\.5{padding-right:0;padding-inline-end:.375rem}
+[dir="rtl"] .pr-2{padding-right:0;padding-inline-end:.5rem}
+[dir="rtl"] .pr-3{padding-right:0;padding-inline-end:.75rem}
+[dir="rtl"] .pr-4{padding-right:0;padding-inline-end:1rem}
+[dir="rtl"] .pr-4\.5{padding-right:0;padding-inline-end:1.125rem}
+[dir="rtl"] .pr-5{padding-right:0;padding-inline-end:1.25rem}
+[dir="rtl"] .pr-6{padding-right:0;padding-inline-end:1.5rem}
+[dir="rtl"] .pr-7{padding-right:0;padding-inline-end:1.75rem}
+[dir="rtl"] .pr-10{padding-right:0;padding-inline-end:2.5rem}
+[dir="rtl"] .pr-12{padding-right:0;padding-inline-end:3rem}
+
+/* --- absolute offsets ----------------------------------------------------- */
+[dir="rtl"] .left-0{left:auto;inset-inline-start:0}
+[dir="rtl"] .left-0\.5{left:auto;inset-inline-start:.125rem}
+[dir="rtl"] .left-1{left:auto;inset-inline-start:.25rem}
+[dir="rtl"] .left-4{left:auto;inset-inline-start:1rem}
+[dir="rtl"] .left-\[10px\]{left:auto;inset-inline-start:10px}
+[dir="rtl"] .right-0{right:auto;inset-inline-end:0}
+[dir="rtl"] .right-0\.5{right:auto;inset-inline-end:.125rem}
+[dir="rtl"] .right-1{right:auto;inset-inline-end:.25rem}
+[dir="rtl"] .right-1\.5{right:auto;inset-inline-end:.375rem}
+[dir="rtl"] .right-2{right:auto;inset-inline-end:.5rem}
+[dir="rtl"] .right-4{right:auto;inset-inline-end:1rem}
+[dir="rtl"] .right-6{right:auto;inset-inline-end:1.5rem}
+
+/* --- border widths -------------------------------------------------------- */
+[dir="rtl"] .border-l{border-left-width:0;border-inline-start-width:1px}
+[dir="rtl"] .border-l-0{border-left-width:0;border-inline-start-width:0}
+[dir="rtl"] .border-l-2{border-left-width:0;border-inline-start-width:2px}
+[dir="rtl"] .border-l-4{border-left-width:0;border-inline-start-width:4px}
+[dir="rtl"] .border-l-\[1px\]{border-left-width:0;border-inline-start-width:1px}
+[dir="rtl"] .border-r{border-right-width:0;border-inline-end-width:1px}
+[dir="rtl"] .border-r-0{border-right-width:0;border-inline-end-width:0}
+[dir="rtl"] .border-r-\[1px\]{border-right-width:0;border-inline-end-width:1px}
+
+/* --- corner radii --------------------------------------------------------
+   Radius values reference CRM's own theme variables where it uses them, so a
+   theme change stays in sync. Physical corners are zeroed, logical corners
+   carry the value. `border-start-*` is top in RTL, `border-end-*` is bottom. */
+[dir="rtl"] .rounded-l{border-top-left-radius:0;border-bottom-left-radius:0;border-start-start-radius:var(--radius-4);border-end-start-radius:var(--radius-4)}
+[dir="rtl"] .rounded-l-lg{border-top-left-radius:0;border-bottom-left-radius:0;border-start-start-radius:var(--radius-lg);border-end-start-radius:var(--radius-lg)}
+[dir="rtl"] .rounded-l-none{border-top-left-radius:0;border-bottom-left-radius:0;border-start-start-radius:var(--radius-none);border-end-start-radius:var(--radius-none)}
+[dir="rtl"] .rounded-l-\[7px\]{border-top-left-radius:0;border-bottom-left-radius:0;border-start-start-radius:7px;border-end-start-radius:7px}
+[dir="rtl"] .rounded-l-\[9px\]{border-top-left-radius:0;border-bottom-left-radius:0;border-start-start-radius:9px;border-end-start-radius:9px}
+[dir="rtl"] .rounded-r{border-top-right-radius:0;border-bottom-right-radius:0;border-start-end-radius:var(--radius-4);border-end-end-radius:var(--radius-4)}
+[dir="rtl"] .rounded-r-md{border-top-right-radius:0;border-bottom-right-radius:0;border-start-end-radius:var(--radius-md);border-end-end-radius:var(--radius-md)}
+[dir="rtl"] .rounded-r-none{border-top-right-radius:0;border-bottom-right-radius:0;border-start-end-radius:var(--radius-none);border-end-end-radius:var(--radius-none)}
+[dir="rtl"] .rounded-r-\[7px\]{border-top-right-radius:0;border-bottom-right-radius:0;border-start-end-radius:7px;border-end-end-radius:7px}
+[dir="rtl"] .rounded-r-\[9px\]{border-top-right-radius:0;border-bottom-right-radius:0;border-start-end-radius:9px;border-end-end-radius:9px}
+[dir="rtl"] .rounded-tl-none{border-top-left-radius:0;border-start-start-radius:var(--radius-none)}
+[dir="rtl"] .rounded-tl-sm{border-top-left-radius:0;border-start-start-radius:var(--radius-sm)}
+[dir="rtl"] .rounded-tl-\[10\.5px\]{border-top-left-radius:0;border-start-start-radius:10.5px}
+[dir="rtl"] .rounded-tr-none{border-top-right-radius:0;border-start-end-radius:var(--radius-none)}
+[dir="rtl"] .rounded-tr-\[10\.5px\]{border-top-right-radius:0;border-start-end-radius:10.5px}
+[dir="rtl"] .rounded-bl-none{border-bottom-left-radius:0;border-end-start-radius:var(--radius-none)}
+[dir="rtl"] .rounded-br-none{border-bottom-right-radius:0;border-end-end-radius:var(--radius-none)}
+
+/* --- alignment and floats ------------------------------------------------
+   `text-align: start/end` follows the document direction, which is exactly the
+   mirror of `text-left`/`text-right`. Floats have no logical form that all
+   target browsers agree on, so they are mirrored physically on purpose. */
+[dir="rtl"] .text-left{text-align:start}
+[dir="rtl"] .text-right{text-align:end}
+[dir="rtl"] .float-left{float:right}
+[dir="rtl"] .float-right{float:left}
+
+/* --- responsive and state variants --------------------------------------- */
+@media (min-width:640px){
+[dir="rtl"] .sm\:pl-5{padding-left:0;padding-inline-start:1.25rem}
+[dir="rtl"] .sm\:border-r{border-right-width:0;border-inline-end-width:1px}
+}
+[dir="rtl"] .group:has([data-action]) .group-has-\[\[data-action\]\]\:ml-0{margin-left:0;margin-inline-start:0}

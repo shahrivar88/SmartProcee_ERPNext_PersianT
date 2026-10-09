@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "adapter_id",
+  "title",
+  "target_app",
+  "detected_version",
+  "state",
+  "column_break_main",
+  "enabled",
+  "override_version_check",
+  "use_system_font",
+  "section_break_details",
+  "compatible_range",
+  "tested_versions",
+  "hosting",
+  "risk",
+  "supports_system_font",
+  "column_break_notes",
+  "adapters_notes",
+  "admin_notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "adapter_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "شناسه",
+   "read_only": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "عنوان",
+   "read_only": 1
+  },
+  {
+   "fieldname": "target_app",
+   "fieldtype": "Data",
+   "label": "برنامهٔ هدف",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "detected_version",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "نسخهٔ نصب‌شده",
+   "read_only": 1
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "وضعیت",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "فعال"
+  },
+  {
+   "default": "0",
+   "description": "فقط پس از بررسی چشمی فعال شود.",
+   "fieldname": "override_version_check",
+   "fieldtype": "Check",
+   "label": "پذیرش نسخهٔ تست‌نشده"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "description": "فونت فعال در «مدیریت فونت سیستم» را در این برنامه هم به کار می‌برد. فونت‌های کد و آیکون دست نمی‌خورند. برای آداپتوری که پشتیبانی نمی‌کند فقط «پشتیبانی نمی‌شود» نمایش داده می‌شود.",
+   "fieldname": "use_system_font",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "استفاده از فونت فارسی سیستم",
+   "read_only_depends_on": "eval:!doc.supports_system_font"
+  },
+  {
+   "fieldname": "section_break_details",
+   "fieldtype": "Section Break",
+   "label": "مشخصات فنی (از کد)"
+  },
+  {
+   "fieldname": "compatible_range",
+   "fieldtype": "Data",
+   "label": "بازهٔ سازگاری",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tested_versions",
+   "fieldtype": "Data",
+   "label": "نسخه‌های تست‌شده",
+   "read_only": 1
+  },
+  {
+   "fieldname": "hosting",
+   "fieldtype": "Data",
+   "label": "نحوهٔ میزبانی",
+   "read_only": 1
+  },
+  {
+   "fieldname": "risk",
+   "fieldtype": "Data",
+   "label": "ریسک",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "supports_system_font",
+   "fieldtype": "Check",
+   "label": "پشتیبانی از فونت فارسی سیستم",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_notes",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "adapters_notes",
+   "fieldtype": "Small Text",
+   "label": "توضیح آداپتور",
+   "read_only": 1
+  },
+  {
+   "fieldname": "admin_notes",
+   "fieldtype": "Small Text",
+   "label": "یادداشت مدیر"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-09 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Persian RTL",
+ "name": "Persian RTL Adapter",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

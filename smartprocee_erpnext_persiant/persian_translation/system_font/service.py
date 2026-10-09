@@ -5,11 +5,13 @@ Metadata is read once on upload and stored on each face row.
 """
 
 import json
+from functools import partial
 
 import frappe
 
 from smartprocee_erpnext_persiant.persian_translation.system_font.css import (
 	managed_family,
+	render_adapter_css,
 	render_family_css,
 	sanitize_css_family,
 )
@@ -24,6 +26,7 @@ from smartprocee_erpnext_persiant.persian_translation.system_font.storage import
 	MARKER,
 	clear_active_css,
 	delete_upload,
+	read_active_css,
 	write_active_css,
 	write_upload,
 )
@@ -85,11 +88,15 @@ def upload_font_family():
 	doc.css_family = managed_family(doc.family_name)
 	doc.source = "Uploaded"
 	doc.is_active = 0
+	written = []
+	# A family that is never committed must not leave its files on disk.
+	frappe.db.after_rollback.add(partial(_discard_uploads, written))
 	for face in faces:
 		face["file_url"] = write_upload(face["font_format"], face.pop("data"))
+		written.append(face["file_url"])
 		face["warning"] = "\n".join(face.pop("warnings") or [])
 		doc.append("faces", {key: face.get(key) for key in FACE_FIELDS})
-	doc.insert(ignore_permissions=True)
+	doc.insert()
 	return family_review(doc)
 
 
@@ -97,8 +104,7 @@ def upload_font_family():
 def save_face_mapping(name, mapping):
 	require_font_manager()
 	doc = frappe.get_doc(FAMILY, name)
-	if doc.source == "Bundled":
-		frappe.throw("نگاشت فونت همراه برنامه از فراداده واقعی آن ساخته شده و قابل تغییر نیست.")
+	doc.check_permission("write")
 	if doc.is_active:
 		frappe.throw("خانواده فعال را نمی‌توان ویرایش کرد. ابتدا بازگشت به فونت پیش‌فرض را بزنید.")
 	corrections = {row.get("name"): row for row in _json(mapping)}
@@ -111,7 +117,7 @@ def save_face_mapping(name, mapping):
 			frappe.throw(f"{face.original_filename}: {error}", frappe.ValidationError)
 		for key in ("css_weight", "font_style", "font_stretch", "enabled", "mapping_note"):
 			face.set(key, updated[key])
-	doc.save(ignore_permissions=True)
+	doc.save()
 	return family_review(doc)
 
 
@@ -119,29 +125,56 @@ def save_face_mapping(name, mapping):
 def activate_family(name, confirm_warnings=0):
 	require_font_manager()
 	doc = frappe.get_doc(FAMILY, name)
+	doc.check_permission("write")
 	review = family_review(doc)
 	if review["errors"]:
 		frappe.throw(review["errors"][0], frappe.ValidationError)
 	if review["warnings"] and not int(confirm_warnings or 0):
 		return {"needs_confirmation": True, "review": review}
 	try:
-		css = render_family_css(doc.family_name, review["faces"])
+		desk_css = render_family_css(doc.family_name, review["faces"])
+		adapter_css = render_adapter_css(doc.family_name, review["faces"])
 	except ValueError:
 		frappe.log_error(title="Persian font CSS", message=frappe.get_traceback())
 		frappe.throw("ساخت CSS فونت ممکن نشد و تنظیمات قبلی حفظ شد.", frappe.ValidationError)
-	write_active_css(css)
-	for other in frappe.get_all(FAMILY, filters={"is_active": 1, "name": ["!=", doc.name]}, pluck="name"):
-		frappe.db.set_value(FAMILY, other, "is_active", 0)
-	doc.db_set("is_active", 1)
+	_capture_restore_point(f"پیش از فعال‌سازی فونت «{doc.family_name}»")
+	write_active_css(desk_css, adapter_css)
+	_set_active_flag(doc, 1, deactivate_others=True)
 	return {"activated": doc.name, "family_name": doc.family_name}
+
+
+def refresh_active_css():
+	"""Rebuild the generated stylesheets of the active family (``after_migrate``).
+
+	The rules come from code, so a release that changes them must reach a site
+	whose font was activated under an older one. Nothing is written when the
+	files already match, so a routine migrate does not touch `site_config`.
+	"""
+	if not frappe.db.table_exists(FAMILY):
+		return
+	name = frappe.db.get_value(FAMILY, {"is_active": 1})
+	if not name:
+		return
+	review = family_review(frappe.get_doc(FAMILY, name))
+	if review["errors"]:
+		return
+	try:
+		desk_css = render_family_css(review["family_name"], review["faces"])
+		adapter_css = render_adapter_css(review["family_name"], review["faces"])
+	except ValueError:
+		frappe.log_error(title="Persian font CSS", message=frappe.get_traceback())
+		return
+	if read_active_css() != (desk_css, adapter_css):
+		write_active_css(desk_css, adapter_css)
 
 
 @frappe.whitelist(methods=["POST"])
 def reset_font():
 	require_font_manager()
+	_capture_restore_point("پیش از بازگشت به فونت پیش‌فرض")
 	clear_active_css()
 	for name in frappe.get_all(FAMILY, filters={"is_active": 1}, pluck="name"):
-		frappe.db.set_value(FAMILY, name, "is_active", 0)
+		_set_active_flag(frappe.get_doc(FAMILY, name), 0)
 	return {"reset": True}
 
 
@@ -149,17 +182,36 @@ def reset_font():
 def delete_family(name):
 	require_font_manager()
 	doc = frappe.get_doc(FAMILY, name)
-	if doc.source == "Bundled":
-		frappe.throw("فونت همراه برنامه از این بخش حذف نمی‌شود.", frappe.ValidationError)
-	if doc.is_active:
-		frappe.throw(
-			"این خانواده فونت فعال سیستم است. ابتدا «بازگشت به فونت پیش‌فرض» را بزنید.",
-			frappe.ValidationError,
-		)
-	for face in doc.faces:
-		delete_upload(face.file_url)
-	frappe.delete_doc(FAMILY, doc.name, ignore_permissions=True)
+	doc.check_permission("delete")
+	# The controller refuses an active family, records the restore
+	# point and releases the files, exactly as for a Desk or REST delete.
+	doc.delete()
 	return {"deleted": name}
+
+
+def _discard_uploads(urls) -> None:
+	for url in urls:
+		delete_upload(url)
+
+
+def _capture_restore_point(label: str) -> None:
+	"""Record the font state before it is changed, so the change is revertible."""
+	from smartprocee_erpnext_persiant.persian_translation import snapshots
+
+	snapshots.capture(snapshots.PRE_FONT, label, note="برای برگرداندن وضعیت فونت به پیش از این تغییر.")
+
+
+def _set_active_flag(doc, active, deactivate_others=False):
+	"""Flip `is_active` through a normal, permission-checked document write."""
+	if deactivate_others:
+		for name in frappe.get_all(FAMILY, filters={"is_active": 1, "name": ["!=", doc.name]}, pluck="name"):
+			other = frappe.get_doc(FAMILY, name)
+			other.check_permission("write")
+			other.is_active = 0
+			other.save()
+	doc.check_permission("write")
+	doc.is_active = int(bool(active))
+	doc.save()
 
 
 def family_review(doc) -> dict:

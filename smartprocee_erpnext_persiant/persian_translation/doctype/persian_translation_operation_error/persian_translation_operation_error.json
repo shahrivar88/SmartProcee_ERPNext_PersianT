@@ -1,0 +1,115 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:PTOE-{#####}",
+ "creation": "2026-10-08 20:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "excel_row",
+  "sheet",
+  "app",
+  "code",
+  "source_text",
+  "translated_text",
+  "context",
+  "identity",
+  "reason",
+  "action",
+  "before",
+  "after"
+ ],
+ "fields": [
+  {
+   "fieldname": "excel_row",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Excel Row"
+  },
+  {
+   "fieldname": "sheet",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sheet"
+  },
+  {
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "App"
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code"
+  },
+  {
+   "description": "Raw workbook value, stored verbatim (ignore_xss_filter) so the report shows exactly what was read. This fieldtype is HTML-escaped by the Desk before it is rendered.",
+   "fieldname": "source_text",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "in_list_view": 1,
+   "label": "Source Text"
+  },
+  {
+   "description": "The Persian cell this row tried to write. Stored verbatim (ignore_xss_filter) so the exact rejected value is identifiable, not only the reason.",
+   "fieldname": "translated_text",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "label": "Rejected Persian Value"
+  },
+  {
+   "fieldname": "context",
+   "fieldtype": "Data",
+   "label": "Context"
+  },
+  {
+   "fieldname": "identity",
+   "fieldtype": "Data",
+   "label": "Identity"
+  },
+  {
+   "description": "Why the row was not applied. Stored verbatim (ignore_xss_filter) because a reason can quote placeholders and HTML from the workbook.",
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "in_list_view": 1,
+   "label": "Reason"
+  },
+  {
+   "description": "What the person can do about it. Stored verbatim (ignore_xss_filter).",
+   "fieldname": "action",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "label": "Suggested Action"
+  },
+  {
+   "description": "The exact value Frappe would have received. Stored verbatim (ignore_xss_filter) so a sanitizer finding can be checked against the typed value.",
+   "fieldname": "before",
+   "fieldtype": "Text",
+   "ignore_xss_filter": 1,
+   "label": "Value Before Sanitizing"
+  },
+  {
+   "description": "The exact value Frappe would store. Stored verbatim (ignore_xss_filter).",
+   "fieldname": "after",
+   "fieldtype": "Text",
+   "ignore_xss_filter": 1,
+   "label": "Value Frappe Would Store"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-09 15:00:00.000000",
+ "module": "Persian Translation",
+ "name": "Persian Translation Operation Error",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

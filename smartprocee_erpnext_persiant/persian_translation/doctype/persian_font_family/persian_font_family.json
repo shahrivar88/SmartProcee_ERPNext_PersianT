@@ -33,7 +33,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Source",
-   "options": "Bundled\nUploaded",
+   "options": "Uploaded",
    "read_only": 1,
    "reqd": 1
   },
@@ -55,7 +55,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-09-29 22:00:00.000000",
+ "modified": "2026-10-10 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Persian Translation",
  "name": "Persian Font Family",
@@ -63,8 +63,11 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "create": 1,
+   "delete": 1,
    "read": 1,
-   "role": "System Manager"
+   "role": "System Manager",
+   "write": 1
   }
  ],
  "sort_field": "modified",

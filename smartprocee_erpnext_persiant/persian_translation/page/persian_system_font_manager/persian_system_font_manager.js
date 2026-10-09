@@ -113,7 +113,7 @@ class PersianSystemFontManager {
 		this.$status.html(
 			active
 				? `فونت فعال سیستم: <b>${psf_esc(active.family_name)}</b> (${psf_source_label(active.source)})`
-				: "فونت فعال سیستم: <b>پیش‌فرض فارسی‌ساز (Yekan Bakh)</b>"
+				: "فونت فعال سیستم: <b>فونت پیش‌فرض سیستم</b>"
 		);
 		this.$families.empty();
 		families.forEach((family) => this.render_family(family, data.custom_active));
@@ -336,7 +336,7 @@ function psf_server_message(json) {
 }
 
 function psf_source_label(source) {
-	return source === "Bundled" ? "همراه برنامه" : "بارگذاری‌شده";
+	return source === "Uploaded" ? "بارگذاری‌شده" : psf_esc(source);
 }
 
 function psf_esc(value) {
