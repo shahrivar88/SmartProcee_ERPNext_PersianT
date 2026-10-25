@@ -90,6 +90,8 @@
 [dir="rtl"] .right-2{right:auto;inset-inline-end:.5rem}
 [dir="rtl"] .right-4{right:auto;inset-inline-end:1rem}
 [dir="rtl"] .right-6{right:auto;inset-inline-end:1.5rem}
+/* frappe-ui ListHeaderItem parks the column handle on `-right-2`. */
+[dir="rtl"] .-right-2{right:auto;inset-inline-end:-.5rem}
 
 /* --- border widths -------------------------------------------------------- */
 [dir="rtl"] .border-l{border-left-width:0;border-inline-start-width:1px}
@@ -138,3 +140,11 @@
 [dir="rtl"] .sm\:border-r{border-right-width:0;border-inline-end-width:1px}
 }
 [dir="rtl"] .group:has([data-action]) .group-has-\[\[data-action\]\]\:ml-0{margin-left:0;margin-inline-start:0}
+
+/* --- frappe-ui / Reka dropdown (UserDropdown Apps submenu) ---------------
+   Reka writes dir="ltr" on the popper wrapper, so icon/label/chevron stay
+   physically left-to-right while the CRM document is RTL. Restore the menu
+   direction without touching Floating UI placement (it already flips to
+   data-side="left" at the right edge). Flip only the submenu caret. */
+[dir="rtl"] .menu-content{direction:rtl;text-align:start}
+[dir="rtl"] .menu-content .lucide-chevron-right{transform:scaleX(-1)}

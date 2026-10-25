@@ -4,14 +4,13 @@
  "doctype": "Desktop Icon",
  "hidden": 0,
  "icon": "languages",
- "icon_type": "Link",
  "idx": 16,
  "label": "فارسی‌ساز",
- "link": "/desk/persian-translation-manager",
- "link_to": "فارسی‌ساز",
- "link_type": "Workspace Sidebar",
+ "link": "/app/persian-translation-manager",
+ "link_to": "",
+ "link_type": "External",
  "name": "فارسی‌ساز",
- "parent_icon": "Framework",
+ "parent_icon": "",
  "restrict_removal": 0,
  "roles": [
   {

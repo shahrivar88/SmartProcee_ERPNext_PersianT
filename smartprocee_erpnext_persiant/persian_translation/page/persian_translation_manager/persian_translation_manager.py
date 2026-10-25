@@ -9,7 +9,10 @@ from smartprocee_erpnext_persiant.persian_translation.service import (
 	apply_import as _apply_import,
 )
 from smartprocee_erpnext_persiant.persian_translation.service import (
-	export_excel as _export_excel,
+	download_export as _download_export,
+)
+from smartprocee_erpnext_persiant.persian_translation.service import (
+	start_export as _start_export,
 )
 from smartprocee_erpnext_persiant.persian_translation.service import (
 	get_rows as _get_rows,
@@ -92,10 +95,10 @@ def scan_status():
 	return _scan_status()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @require_schema
-def export_excel(search=None, app=None, status=None, kind=None, sort_by=None, sort_order=None):
-	return _export_excel(
+def start_export(search=None, app=None, status=None, kind=None, sort_by=None, sort_order=None):
+	return _start_export(
 		search=search,
 		app=app,
 		status=status,
@@ -103,6 +106,12 @@ def export_excel(search=None, app=None, status=None, kind=None, sort_by=None, so
 		sort_by=sort_by,
 		sort_order=sort_order,
 	)
+
+
+@frappe.whitelist()
+@require_schema
+def download_export(name):
+	return _download_export(name)
 
 
 @frappe.whitelist(methods=["POST"])

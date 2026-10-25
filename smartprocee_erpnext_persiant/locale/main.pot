@@ -1,0 +1,111 @@
+# Translations for SmartProcess ERPNext Persianizer.
+# This file is the Gettext template for the app's own Desk UI.
+# Do not put Frappe or ERPNext catalogue strings here. Those stay in translations/fa.csv.
+msgid ""
+msgstr ""
+"Project-Id-Version: فارسی‌ساز\n"
+"Report-Msgid-Bugs-To: Smart Process\n"
+"POT-Creation-Date: 2026-10-24 20:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Persian\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Persian Translation"
+msgstr ""
+
+msgid "Persian RTL"
+msgstr ""
+
+msgid "Persian Translation Source"
+msgstr ""
+
+msgid "Persian Translation Ownership"
+msgstr ""
+
+msgid "Persian Translation Operation"
+msgstr ""
+
+msgid "Persian Translation Operation Error"
+msgstr ""
+
+msgid "Persian Snapshot"
+msgstr ""
+
+msgid "Persian Font Family"
+msgstr ""
+
+msgid "Persian Font Face"
+msgstr ""
+
+msgid "Persian Translation Backup"
+msgstr ""
+
+msgid "Persian RTL Settings"
+msgstr ""
+
+msgid "Persian RTL Adapter"
+msgstr ""
+
+msgid "Persian RTL Exclusion"
+msgstr ""
+
+msgid "Last Written Value"
+msgstr ""
+
+msgid "Last Written"
+msgstr ""
+
+msgid "Persian Translation Rows"
+msgstr ""
+
+msgid "RTL Was Enabled"
+msgstr ""
+
+msgid "Snapshot Format"
+msgstr ""
+
+msgid "Workbook Name"
+msgstr ""
+
+msgid "Rows To Apply"
+msgstr ""
+
+msgid "Rows Processed"
+msgstr ""
+
+msgid "Cancel Requested"
+msgstr ""
+
+msgid "Rejected Persian Value"
+msgstr ""
+
+msgid "Value Before Sanitizing"
+msgstr ""
+
+msgid "Value Frappe Would Store"
+msgstr ""
+
+msgid "Family Name"
+msgstr ""
+
+msgid "CSS Family"
+msgstr ""
+
+msgid "Mapping Note"
+msgstr ""
+
+msgid "Metadata Weight Class"
+msgstr ""
+
+msgid "Metadata Width Class"
+msgstr ""
+
+msgid "Detected Style"
+msgstr ""
+
+msgid "Original Filename"
+msgstr ""

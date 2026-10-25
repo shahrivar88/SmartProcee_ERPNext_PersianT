@@ -1,0 +1,112 @@
+# Persian translations for SmartProcess ERPNext Persianizer.
+# Covers this app's own Desk UI only. Frappe and ERPNext catalogue
+# strings stay in translations/fa.csv and must not be added here.
+msgid ""
+msgstr ""
+"Project-Id-Version: فارسی‌ساز\n"
+"Report-Msgid-Bugs-To: Smart Process\n"
+"POT-Creation-Date: 2026-10-24 20:00+0000\n"
+"PO-Revision-Date: 2026-10-24 20:00+0000\n"
+"Last-Translator: Smart Process\n"
+"Language-Team: Persian\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Persian Translation"
+msgstr "فارسی‌ساز"
+
+msgid "Persian RTL"
+msgstr "سازگاری راست‌به‌چپ"
+
+msgid "Persian Translation Source"
+msgstr "منابع ترجمه فارسی"
+
+msgid "Persian Translation Ownership"
+msgstr "مالکیت ترجمه فارسی"
+
+msgid "Persian Translation Operation"
+msgstr "عملیات ترجمه فارسی"
+
+msgid "Persian Translation Operation Error"
+msgstr "خطای عملیات ترجمه فارسی"
+
+msgid "Persian Snapshot"
+msgstr "نسخه پشتیبان فارسی‌ساز"
+
+msgid "Persian Font Family"
+msgstr "خانواده فونت فارسی"
+
+msgid "Persian Font Face"
+msgstr "چهره فونت فارسی"
+
+msgid "Persian Translation Backup"
+msgstr "پشتیبان ترجمه فارسی"
+
+msgid "Persian RTL Settings"
+msgstr "تنظیمات راست‌به‌چپ"
+
+msgid "Persian RTL Adapter"
+msgstr "آداپتور راست‌به‌چپ"
+
+msgid "Persian RTL Exclusion"
+msgstr "استثنای راست‌به‌چپ"
+
+msgid "Last Written Value"
+msgstr "آخرین مقدار نوشته‌شده"
+
+msgid "Last Written"
+msgstr "زمان آخرین نوشتن"
+
+msgid "Persian Translation Rows"
+msgstr "ردیف‌های ترجمه فارسی"
+
+msgid "RTL Was Enabled"
+msgstr "راست‌به‌چپ فعال بود"
+
+msgid "Snapshot Format"
+msgstr "قالب نسخه پشتیبان"
+
+msgid "Workbook Name"
+msgstr "نام فایل اکسل"
+
+msgid "Rows To Apply"
+msgstr "ردیف‌های قابل اعمال"
+
+msgid "Rows Processed"
+msgstr "ردیف‌های پردازش‌شده"
+
+msgid "Cancel Requested"
+msgstr "درخواست لغو"
+
+msgid "Rejected Persian Value"
+msgstr "مقدار فارسی ردشده"
+
+msgid "Value Before Sanitizing"
+msgstr "مقدار قبل از پاک‌سازی"
+
+msgid "Value Frappe Would Store"
+msgstr "مقداری که Frappe ذخیره می‌کند"
+
+msgid "Family Name"
+msgstr "نام خانواده"
+
+msgid "CSS Family"
+msgstr "خانواده CSS"
+
+msgid "Mapping Note"
+msgstr "یادداشت نگاشت"
+
+msgid "Metadata Weight Class"
+msgstr "رده وزن فراداده"
+
+msgid "Metadata Width Class"
+msgstr "رده عرض فراداده"
+
+msgid "Detected Style"
+msgstr "سبک تشخیص‌داده‌شده"
+
+msgid "Original Filename"
+msgstr "نام فایل اصلی"

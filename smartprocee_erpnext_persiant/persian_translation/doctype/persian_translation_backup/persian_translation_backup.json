@@ -27,6 +27,7 @@
  "is_virtual": 0,
  "module": "Persian Translation",
  "name": "Persian Translation Backup",
+ "translated_doctype": 1,
  "permissions": [
   {"create": 1, "delete": 1, "read": 1, "role": "System Manager", "write": 1}
  ],

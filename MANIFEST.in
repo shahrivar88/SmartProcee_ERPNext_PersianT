@@ -2,4 +2,4 @@ include LICENSE
 include CHANGELOG.md
 include SECURITY.md
 include docker-compose.assets.example.yaml
-recursive-include smartprocee_erpnext_persiant *.csv *.json *.md *.py *.txt *.css
+recursive-include smartprocee_erpnext_persiant *.csv *.json *.md *.py *.txt *.css *.js *.po *.pot *.svg

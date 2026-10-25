@@ -51,6 +51,15 @@ class TestDocumentEdits(UnitTestCase):
 		self.assertIn(CRM_URL, updated)
 		self.assertLess(updated.index(CRM_URL), updated.index("</head>"))
 
+	def test_the_adapter_stylesheet_is_cache_busted(self):
+		href = inject.link_tag(crm_adapter())
+		self.assertIn(CRM_URL + "?v=", href)
+
+	def test_the_list_resize_script_is_inserted_for_crm(self):
+		updated = inject.inject(CRM_HTML, crm_adapter())
+		self.assertIn(crm_adapter().script_url, updated)
+		self.assertLess(updated.index(crm_adapter().script_url), updated.index("</head>"))
+
 	def test_adapter_stylesheet_loads_after_the_app_s_own_css(self):
 		"""Our override layer must win the cascade, so it goes last in <head>."""
 		updated = inject.inject(CRM_HTML, crm_adapter())
@@ -68,7 +77,14 @@ class TestDocumentEdits(UnitTestCase):
 		adapter = crm_adapter()
 		updated = inject.inject(CRM_HTML, adapter)
 		payload = "\n".join(
-			part for part in (inject.link_tag(adapter), inject.font_link_tag(adapter), inject.style_tag(adapter)) if part
+			part
+			for part in (
+				inject.link_tag(adapter),
+				inject.script_tag(adapter),
+				inject.font_link_tag(adapter),
+				inject.style_tag(adapter),
+			)
+			if part
 		)
 		reverted = updated.replace(payload + "\n", "").replace(' dir="rtl"', "")
 		self.assertEqual(reverted, CRM_HTML)
@@ -144,11 +160,20 @@ class TestRuntimeGuards(RTLStateMixin, IntegrationTestCase):
 		return response.get_data(as_text=True)
 
 	def test_enabled_persian_get_is_injected(self):
-		self.assertIn(CRM_URL, self._call())
+		body = self._call()
+		self.assertIn(CRM_URL, body)
+		self.assertIn(crm_adapter().script_url, body)
 
 	def test_non_persian_language_is_untouched(self):
 		frappe.local.lang = "en"
-		self.assertEqual(self._call(), CRM_HTML)
+		with patch.object(frappe, "get_cached_value", return_value="en"):
+			self.assertEqual(self._call(), CRM_HTML)
+
+	def test_signed_in_persian_user_is_injected_when_request_lang_is_english(self):
+		frappe.local.lang = "en"
+		with patch.object(frappe, "get_cached_value", return_value="fa"):
+			body = self._call()
+		self.assertIn(CRM_URL, body)
 
 	def test_post_is_untouched(self):
 		self.assertEqual(self._call(method="POST"), CRM_HTML)

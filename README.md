@@ -23,6 +23,8 @@ Persianizer is a Frappe app. Its install name is `smartprocee_erpnext_persiant`.
 - Python packages `openpyxl`, `fonttools`, and `brotli`. `bench get-app` installs them.
 - Optional: Frappe CRM, for the CRM RTL adapter
 
+See [docs/FRAPPE_COMPATIBILITY.md](docs/FRAPPE_COMPATIBILITY.md) for the Frappe and ERPNext versions this release claims, and for checks that are still `NOT VERIFIED`.
+
 ## Installation
 
 ```bash
@@ -54,7 +56,7 @@ Restart the web and worker processes after the migration.
 ## Basic usage
 
 1. Log in as a System Manager.
-2. Open `فارسی‌ساز` from the Desk apps screen or from the sidebar header menu.
+2. Open `فارسی‌ساز` from the Desk home icon, the Apps screen, or the header menu.
 3. Start a scan to load the translatable strings of the installed apps.
 4. Search and filter the list. Edit a Persian value, then save.
 5. Use the backup section to see restore points, take a manual snapshot, or restore.
@@ -63,7 +65,7 @@ Only a System Manager can open the pages or call the APIs of this app.
 
 ## Excel workflow
 
-1. Filter the list, then export it to Excel. The workbook has one sheet for each app.
+1. Filter the list, then export it to Excel. A full export runs as a `long` background job. The download is a private file that only the owner can read. The workbook has one sheet for each app.
 2. Edit only the Persian translation column. The other columns give context. The two technical columns at the end identify each row. Do not change them.
 3. Import the workbook. The app first shows a preview with the number of rows that will be applied, that are unchanged, and that are rejected.
 4. Apply the import. The app takes a restore point, then applies the rows in batches in the background.
@@ -146,7 +148,7 @@ bench --site <site-name> clear-cache
 Uninstall removes:
 
 - the app's DocTypes and their tables, which include all snapshots and operation history,
-- the pages, sidebar, home icon, and Desk menu item,
+- the pages, home icon, and Desk menu item,
 - the font files that the app wrote to the site, and the font stylesheet link in the site configuration,
 - the RTL injection and the font stylesheets. They stop at once.
 
@@ -163,6 +165,7 @@ Uninstall also restores translation rows that earlier versions had backed up, bu
 - The user interface of the app is in Persian.
 - RTL layout is available only for Frappe CRM. Insights and Raven are not styled yet.
 - The CRM adapter overrides CRM's stylesheet. It cannot rewrite it. When one element has two left/right utilities of the same kind, the result can be wrong. Check CRM visually after each CRM upgrade.
+- CRM `Incoming` call-log cells and the frappe-ui `Load More` footer may stay English. The catalogue has those strings. The upstream UI does not look them up.
 - Automatic restore points are taken while the request runs. On a site with a very large Persian catalogue, a font or RTL change can take a few seconds longer.
 - The app manages Persian (`fa`) only.
 

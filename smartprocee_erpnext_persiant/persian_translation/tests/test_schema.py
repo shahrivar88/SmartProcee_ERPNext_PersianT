@@ -86,6 +86,24 @@ class TestSchemaGuard(IntegrationTestCase):
 		self.assertFalse(_is_guarded(endpoint.save_column_widths))
 		self.assertTrue(_is_guarded(endpoint.get_rows))
 
+	def test_a_missing_required_column_is_refused_with_the_admin_message(self):
+		original = frappe.db.has_column
+
+		def stub(doctype, column):
+			if doctype == "Persian Translation Source" and column == "app":
+				return False
+			return original(doctype, column)
+
+		frappe.db.has_column = stub
+		self.addCleanup(lambda: setattr(frappe.db, "has_column", original))
+		with self.assertRaises(frappe.ValidationError) as context:
+			schema.require_ready()
+		message = str(context.exception)
+		self.assertIn(schema.SCHEMA_TITLE, message)
+		self.assertIn("Persian Translation Source.app", message)
+		self.assertIn("bench migrate", message)
+		self.assertFalse(schema.is_ready())
+
 
 class _missing:
 	"""Report exactly these DocTypes as absent for the duration of the block.

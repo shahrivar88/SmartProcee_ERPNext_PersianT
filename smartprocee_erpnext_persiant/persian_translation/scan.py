@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import frappe
@@ -128,6 +129,43 @@ def _extract_json_message(item):
 	return message, note
 
 
+def _existing_fields(doctype, fields):
+	"""Requested columns that this site's table actually has.
+
+	Frappe added ``app`` to Workspace, Workspace Sidebar and Desktop Icon at
+	different 16.x points. Selecting a column the table does not have raises
+	MariaDB 1054 and used to abort the whole scan.
+	"""
+	if not frappe.db.exists("DocType", doctype) or not frappe.db.table_exists(doctype):
+		return []
+	return [name for name in fields if frappe.db.has_column(doctype, name)]
+
+
+def _get_existing(doctype, fields, **kwargs):
+	existing = _existing_fields(doctype, fields)
+	if not existing:
+		return []
+	return frappe.get_all(doctype, fields=existing, **kwargs)
+
+
+def _safe_scan(label, fn, bucket, errors):
+	try:
+		fn(bucket)
+	except Exception as exc:
+		errors.append(f"{label}: {exc}")
+
+
+def _public_scan_error(exc):
+	text = str(exc)
+	if "Unknown column" in text:
+		return (
+			"اسکن به‌خاطر ناسازگاری ستون پایگاه‌داده متوقف شد. "
+			"روی همین سایت «bench migrate» را برای همهٔ برنامه‌های نصب‌شده اجرا کنید. "
+			f"جزئیات فنی: {text}"
+		)
+	return text
+
+
 def _scan_json_files(app, bucket):
 	root = Path(frappe.get_app_path(app))
 	if not root.exists():
@@ -157,17 +195,17 @@ def _scan_json_files(app, bucket):
 
 
 def _scan_menu_records(bucket):
-	for sidebar in frappe.get_all("Workspace Sidebar", fields=["name", "title", "module", "app"]):
-		app = _app_for(sidebar.module, sidebar.app)
+	for sidebar in _get_existing("Workspace Sidebar", ["name", "title", "module", "app"]):
+		app = _app_for(sidebar.module, sidebar.get("app"))
 		if not app:
 			continue
 		_add(bucket, app, sidebar.name, "", f"Workspace Sidebar: {sidebar.name}", sidebar.module or "")
 		if sidebar.title and sidebar.title != sidebar.name:
 			_add(bucket, app, sidebar.title, "", f"Workspace Sidebar title: {sidebar.name}", sidebar.module or "")
-		items = frappe.get_all(
+		items = _get_existing(
 			"Workspace Sidebar Item",
+			["label"],
 			filters={"parent": sidebar.name},
-			fields=["label"],
 			limit_page_length=0,
 		)
 		for item in items:
@@ -180,15 +218,15 @@ def _scan_menu_records(bucket):
 				sidebar.module or "",
 			)
 
-	for icon in frappe.get_all("Desktop Icon", fields=["label", "app"], limit_page_length=0):
-		_add(bucket, icon.app or "frappe", icon.label, "", "Desktop Icon")
+	for icon in _get_existing("Desktop Icon", ["label", "app"], limit_page_length=0):
+		_add(bucket, icon.get("app") or "frappe", icon.label, "", "Desktop Icon")
 
-	for workspace_doc in frappe.get_all(
+	for workspace_doc in _get_existing(
 		"Workspace",
-		fields=["name", "label", "title", "module", "app", "content"],
+		["name", "label", "title", "module", "app", "content"],
 		limit_page_length=0,
 	):
-		app = _app_for(workspace_doc.module, workspace_doc.app)
+		app = _app_for(workspace_doc.module, workspace_doc.get("app"))
 		if not app:
 			continue
 		_add(bucket, app, workspace_doc.label, "", f"Workspace: {workspace_doc.name}", workspace_doc.module or "")
@@ -201,7 +239,7 @@ def _scan_menu_records(bucket):
 def _scan_workspace_children(bucket):
 	parents = {
 		row.name: row
-		for row in frappe.get_all("Workspace", fields=["name", "module", "app", "label"], limit_page_length=0)
+		for row in _get_existing("Workspace", ["name", "module", "app", "label"], limit_page_length=0)
 	}
 	child_tables = (
 		("Workspace Link", "label", "Workspace Link"),
@@ -219,7 +257,7 @@ def _scan_workspace_children(bucket):
 			parent = parents.get(row.parent)
 			if not parent:
 				continue
-			app = _app_for(parent.module, parent.app)
+			app = _app_for(parent.module, parent.get("app"))
 			if not app:
 				continue
 			_add(bucket, app, row.get(fieldname), "", f"{origin}: {parent.name}", parent.module or "")
@@ -287,6 +325,56 @@ def _scan_app_messages(app, bucket, errors):
 	return ok
 
 
+# CRM 1.85 keeps nav labels in AppSidebar.vue. CRM 1.89 moved them to
+# frontend/src/utils/navigation.js. Scan every known file; missing files are skipped.
+CRM_NAV_FILES = (
+	Path("frontend/src/utils/navigation.js"),
+	Path("frontend/src/components/Layouts/AppSidebar.vue"),
+)
+CRM_NAV_BLOCKS = (
+	"export const navigationItems = [",
+	"const links = [",
+)
+CRM_NAV_LABEL = re.compile(r"^\s*\{?\s*label:\s*'([^']+)'", re.M)
+
+
+def sidebar_nav_labels(source: str) -> list[str]:
+	"""Quoted ``label:`` literals in CRM's primary navigation list.
+
+	Those labels are rendered with ``__(link.label)`` but are not wrapped at the
+	definition, so Frappe's extractor never sees them. CRM 1.85 used
+	``const links``; CRM 1.89 uses ``navigationItems``.
+	"""
+	found = []
+	seen = set()
+	for marker in CRM_NAV_BLOCKS:
+		start = source.find(marker)
+		if start < 0:
+			continue
+		end = source.find("\n]", start)
+		if end < 0:
+			continue
+		for label in CRM_NAV_LABEL.findall(source[start:end]):
+			if label in seen:
+				continue
+			seen.add(label)
+			found.append(label)
+	return found
+
+
+def _scan_crm_sidebar(bucket):
+	if "crm" not in frappe.get_installed_apps(_ensure_on_bench=True):
+		return
+	root = Path(frappe.get_app_path("crm")).parent
+	for rel in CRM_NAV_FILES:
+		path = root / rel
+		if not path.is_file():
+			continue
+		origin = f"apps/crm/{rel.as_posix()}"
+		for label in sidebar_nav_labels(path.read_text(encoding="utf-8")):
+			_add(bucket, "crm", label, "", origin)
+
+
 def collect_messages(apps=None):
 	"""Return (rows, errors, failed_apps) for the given installed apps."""
 	frappe.flags.scanned_files = set()
@@ -295,8 +383,9 @@ def collect_messages(apps=None):
 	bucket = {}
 	errors = []
 	failed = []
-	_scan_menu_records(bucket)
-	_scan_workspace_children(bucket)
+	_safe_scan("منوها", _scan_menu_records, bucket, errors)
+	_safe_scan("فضاهای کاری", _scan_workspace_children, bucket, errors)
+	_safe_scan("نوار کناری CRM", _scan_crm_sidebar, bucket, errors)
 	for app in installed:
 		_scan_json_files(app, bucket)
 		if not _scan_app_messages(app, bucket, errors):
@@ -399,7 +488,7 @@ def run_scan(apps=None):
 		return {"strings": count, "errors": errors, "stale_apps_removed": removed}
 	except Exception as exc:
 		frappe.db.rollback()
-		set_scan_status(status="error", message=str(exc), finished=now())
+		set_scan_status(status="error", message=_public_scan_error(exc), finished=now())
 		raise
 
 

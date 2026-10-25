@@ -132,10 +132,31 @@ def ensure_restore_point():
 	snapshots.ensure_adopted_state()
 
 
+def compile_native_translations():
+	"""Compile this app's Gettext PO into the bench MO file Frappe reads at boot.
+
+	``bench compile-po-to-mo`` uses a process pool. Calling that helper from
+	install or migrate can hang, so this compiles only ``fa`` in-process.
+	"""
+	from frappe.gettext.translate import _compile_translation
+	from frappe.translate import clear_cache
+
+	_compile_translation(APP_NAME, "fa", force=True)
+	clear_cache()
+
+
 def after_install():
 	"""Install static assets and the Desk menu item. Administrator Translation rows are left in place."""
+	compile_native_translations()
 	snapshots.capture_install_baseline()
 	sync_standard_items()
+	from smartprocee_erpnext_persiant.desk_icon import ensure_home_icon
+	from smartprocee_erpnext_persiant.persian_translation.account_display import (
+		ensure_display_translations,
+	)
+
+	ensure_home_icon()
+	ensure_display_translations()
 	clear_user_translation_cache("fa")
 	frappe.clear_cache()
 	sync_public_assets()

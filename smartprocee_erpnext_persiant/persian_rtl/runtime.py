@@ -21,7 +21,24 @@ SAFE_METHODS = ("GET", "HEAD")
 
 
 def current_language() -> str:
-	return getattr(frappe.local, "lang", "") or ""
+	"""Language that decides whether a standalone SPA may be mirrored.
+
+	Desk usually sets ``frappe.local.lang``. CRM's website renderer may leave
+	that as the system default while the signed-in user is Persian. CRM's own
+	``get_translations`` already reads ``User.language``, so RTL and font
+	injection follow the same source when the request language is not Persian.
+	"""
+	lang = _lang_code(getattr(frappe.local, "lang", "") or "")
+	if lang == PERSIAN:
+		return lang
+	user = getattr(getattr(frappe, "session", None), "user", None)
+	if not user or user == "Guest":
+		return lang
+	return _lang_code(frappe.get_cached_value("User", user, "language") or "") or lang
+
+
+def _lang_code(value: str) -> str:
+	return (value or "").split("-", 1)[0].split("_", 1)[0]
 
 
 def current_path() -> str:

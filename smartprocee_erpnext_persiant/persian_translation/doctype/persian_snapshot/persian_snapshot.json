@@ -115,9 +115,10 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-09 15:00:00.000000",
+ "modified": "2026-10-24 20:00:00.000000",
  "module": "Persian Translation",
  "name": "Persian Snapshot",
+ "translated_doctype": 1,
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

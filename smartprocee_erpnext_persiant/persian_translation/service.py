@@ -496,7 +496,7 @@ def scan_status():
 	return get_scan_status()
 
 
-def _filtered_payloads(search=None, app=None, status=None, kind=None, sort_by=None, sort_order="asc"):
+def _filtered_payloads(search=None, app=None, status=None, kind=None, sort_by=None, sort_order="asc", on_progress=None):
 	"""Every matching payload, for export.
 
 	The rows are read page by page and sorted once here at the end: sorting each
@@ -523,6 +523,8 @@ def _filtered_payloads(search=None, app=None, status=None, kind=None, sort_by=No
 			sort_order=sort_order if sql_column else None,
 		)
 		rows.extend(batch["rows"])
+		if on_progress:
+			on_progress(len(rows), batch["total"])
 		start += page_length
 		if start >= batch["total"]:
 			break
@@ -534,10 +536,56 @@ def _filtered_payloads(search=None, app=None, status=None, kind=None, sort_by=No
 
 
 def export_excel(search=None, app=None, status=None, kind=None, sort_by=None, sort_order=None):
+	"""Build the workbook in-process. HTTP callers must use ``start_export``."""
 	require_system_manager()
 	rows = _filtered_payloads(search, app, status, kind, sort_by, sort_order or "asc")
 	frappe.response["filename"] = "persian-translations.xlsx"
 	frappe.response["filecontent"] = build_workbook(rows)
+	frappe.response["type"] = "binary"
+	frappe.response["display_content_as"] = "attachment"
+
+
+def start_export(search=None, app=None, status=None, kind=None, sort_by=None, sort_order=None):
+	return operations.start_export(
+		search=search,
+		app=app,
+		status=status,
+		kind=kind,
+		sort_by=sort_by,
+		sort_order=sort_order,
+	)
+
+
+def download_export(name):
+	"""Stream one completed export to its owner. Other System Managers are refused."""
+	from smartprocee_erpnext_persiant.persian_translation.operations import EXCEL_EXPORT, OPERATION
+
+	require_system_manager()
+	name = (name or "").strip()
+	if not name or not frappe.db.exists(OPERATION, name):
+		frappe.throw("عملیات خروجی پیدا نشد.")
+	doc = frappe.get_doc(OPERATION, name)
+	if doc.kind != EXCEL_EXPORT:
+		frappe.throw("این عملیات یک خروجی اکسل نیست.")
+	if frappe.session.user not in ("Administrator", doc.owner):
+		frappe.throw("دانلود این فایل فقط برای صاحب خروجی مجاز است.", frappe.PermissionError)
+	if doc.status != "Completed" or not doc.file_url:
+		frappe.throw("فایل خروجی هنوز آماده نیست.")
+	file_row = frappe.db.get_value(
+		"File",
+		{"file_url": doc.file_url},
+		["name", "owner", "attached_to_doctype", "attached_to_name", "is_private"],
+		as_dict=True,
+	)
+	if not file_row:
+		frappe.throw("فایل خروجی پیدا نشد.")
+	if not file_row.is_private:
+		frappe.throw("فایل خروجی باید خصوصی باشد.")
+	if file_row.owner not in (doc.owner, "Administrator"):
+		frappe.throw("مالکیت فایل خروجی معتبر نیست.", frappe.PermissionError)
+	path = _file_from_url(doc.file_url)
+	frappe.response["filename"] = doc.file_name or "persian-translations.xlsx"
+	frappe.response["filecontent"] = path.read_bytes()
 	frappe.response["type"] = "binary"
 	frappe.response["display_content_as"] = "attachment"
 

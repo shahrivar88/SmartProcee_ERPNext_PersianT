@@ -55,10 +55,11 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-10 12:00:00.000000",
+ "modified": "2026-10-24 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Persian Translation",
  "name": "Persian Font Family",
+ "translated_doctype": 1,
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [

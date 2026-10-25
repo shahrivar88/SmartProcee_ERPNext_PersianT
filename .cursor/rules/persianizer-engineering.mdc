@@ -1,0 +1,17 @@
+---
+description: Pointer to the Persianizer engineering contract
+alwaysApply: true
+---
+
+# Persianizer
+
+The shared contract is `AGENTS.md`. Version claims are in `docs/FRAPPE_COMPATIBILITY.md`. Do not duplicate those files here.
+
+- App install name: `smartprocee_erpnext_persiant`
+- Reply in Persian. Keep identifiers in their original form.
+- Do not edit `frappe`, `erpnext`, CRM, Insights or Raven.
+- Do not SELECT a standard field that this Frappe version may not have.
+- Do not replace Desk labels in the DOM.
+- Do not use `SmartProcessERP` as a test site.
+- Do not commit, tag, push, deploy or migrate production unless Amir asked.
+- Never claim a test or version check that you did not run.

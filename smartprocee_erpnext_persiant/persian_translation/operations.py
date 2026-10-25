@@ -1,7 +1,7 @@
 """Durable background work for the Translation Manager.
 
-Every long Excel preview, Excel apply, snapshot preview and snapshot restore runs
-here, never in the request. One record of type `Persian Translation Operation` per
+Every long Excel preview, Excel apply, Excel export, snapshot preview and snapshot
+restore runs here, never in the request. One record of type `Persian Translation Operation` per
 run is the single source of truth for progress, so a closed browser tab changes
 nothing and no HTTP request has to survive a long import.
 
@@ -66,6 +66,7 @@ IMPORT_PREVIEW = "import_preview"
 IMPORT_APPLY = "import_apply"
 SNAPSHOT_PREVIEW = "snapshot_preview"
 SNAPSHOT_RESTORE = "snapshot_restore"
+EXCEL_EXPORT = "excel_export"
 IMPORT_KINDS = (IMPORT_PREVIEW, IMPORT_APPLY)
 # Kinds that only read and report. They never write a row and never take an undo point.
 PREVIEW_KINDS = (IMPORT_PREVIEW, SNAPSHOT_PREVIEW)
@@ -141,6 +142,45 @@ def start_restore(snapshot: str, mode: str = "full", remove_fonts: int = 0, conf
 			"remove_fonts": cint(remove_fonts),
 		},
 	)
+
+
+def start_export(
+	search=None,
+	app=None,
+	status=None,
+	kind=None,
+	sort_by=None,
+	sort_order=None,
+) -> dict:
+	"""Queue a filtered workbook export. Returns the operation immediately.
+
+	A second click with the same filters reuses the in-flight row. A different
+	filter set is refused while that user already has an export running.
+	"""
+	require_system_manager()
+	recover_abandoned()
+	filters = {
+		"search": search or "",
+		"app": app or "",
+		"status": status or "",
+		"kind": kind or "",
+		"sort_by": sort_by or "",
+		"sort_order": sort_order or "asc",
+	}
+	user = frappe.session.user
+	active = frappe.get_all(
+		OPERATION,
+		filters={"kind": EXCEL_EXPORT, "status": ["in", list(ACTIVE_STATUSES)], "owner": user},
+		fields=["name", "detail"],
+		limit_page_length=0,
+	)
+	for row in active:
+		if (_detail(row.detail).get("filters") or {}) == filters:
+			return summarize(row.name)
+	if active:
+		frappe.throw("یک خروجی اکسل در صف یا در حال اجراست. تا پایان آن خروجی تازه‌ای شروع نمی‌شود.")
+	_cleanup_old_exports(user)
+	return _start(kind=EXCEL_EXPORT, detail={"filters": filters})
 
 
 def start_restore_preview(snapshot: str, mode: str = "full", remove_fonts: int = 0) -> dict:
@@ -247,6 +287,9 @@ def _enqueue(name: str, attempt: int = 0) -> None:
 		enqueue_after_commit=True,
 		job_id=job_id,
 	)
+	# `_create` already committed the row. Without a commit here, a caller
+	# outside an HTTP request would leave the job unregistered in Redis.
+	frappe.db.commit()
 
 
 def _job_id(name: str, attempt: int = 0) -> str:
@@ -284,6 +327,8 @@ def _guard(kind: str, file_url: str) -> None:
 				"تا زمانی که یک عملیات در صف یا در حال اجراست، بازگردانی شروع نمی‌شود: "
 				+ "، ".join(row.name for row in active[:5])
 			)
+		return
+	if kind == EXCEL_EXPORT:
 		return
 	if not file_url:
 		frappe.throw("فایل اکسل انتخاب نشده است.")
@@ -391,12 +436,17 @@ def summarize(name: str, with_detail: bool = False) -> dict:
 	# much is in them.
 	full_errors = detail.pop("errors_full", None)
 	plan_blob = detail.pop("plan_blob", None)
+	file_url = doc.file_url or ""
+	file_name = doc.file_name or ""
+	if doc.kind == EXCEL_EXPORT and frappe.session.user not in ("Administrator", doc.owner):
+		file_url = ""
+		file_name = ""
 	payload = {
 		"name": doc.name,
 		"kind": doc.kind,
 		"status": doc.status,
-		"file_url": doc.file_url or "",
-		"file_name": doc.file_name or "",
+		"file_url": file_url,
+		"file_name": file_name,
 		"snapshot": doc.snapshot or "",
 		"total_rows": cint(doc.total_rows),
 		"planned": cint(doc.planned),
@@ -528,7 +578,11 @@ def resume_operation(name: str) -> dict:
 		frappe.throw("این عملیات هنوز تمام نشده و در صف یا در حال اجراست.")
 	if doc.kind in SNAPSHOT_KINDS:
 		_guard(doc.kind, "")
-	elif doc.status not in ACTIVE_STATUSES and cint(doc.processed) >= cint(doc.planned):
+	elif (
+		doc.kind != EXCEL_EXPORT
+		and doc.status not in ACTIVE_STATUSES
+		and cint(doc.processed) >= cint(doc.planned)
+	):
 		frappe.throw("این عملیات به آخرین ردیف رسیده است و ادامه‌دادن معنایی ندارد.")
 	_assert_workbook_unchanged(doc)
 	values = {
@@ -683,6 +737,9 @@ def run_operation(operation: str) -> dict:
 		return {"skipped": True, "reason": "another worker claimed it"}
 	try:
 		_become_owner(doc)
+		if doc.kind == EXCEL_EXPORT:
+			_run_excel_export(doc, token)
+			return summarize(operation)
 		_ensure_undo_point(doc)
 		actions, summary = _build_plan(doc)
 		_assert_workbook_unchanged(doc)
@@ -1224,3 +1281,102 @@ def _save(doc) -> None:
 def _finish_failed(doc, exc) -> None:
 	doc.reload()
 	_finish(doc, "Failed", f"عملیات با خطا متوقف شد: {str(exc)[:400]}")
+
+
+def _run_excel_export(doc, token: str) -> None:
+	"""Build the filtered workbook in the worker and attach it as a private File."""
+	from frappe.utils.file_manager import save_file
+
+	from smartprocee_erpnext_persiant.persian_translation.excel_io import build_workbook
+	from smartprocee_erpnext_persiant.persian_translation.service import _filtered_payloads
+
+	if _cancel_requested(doc.name):
+		_finish(doc, "Cancelled", "خروجی اکسل متوقف شد.")
+		return
+
+	def on_progress(processed: int, total: int) -> None:
+		if not _still_owns(doc.name, token):
+			frappe.throw("این خروجی دیگر متعلق به این کارگر نیست.")
+		if _cancel_requested(doc.name):
+			frappe.throw("خروجی اکسل متوقف شد.")
+		frappe.db.set_value(
+			OPERATION,
+			doc.name,
+			{
+				"total_rows": total,
+				"planned": total,
+				"processed": processed,
+				"heartbeat": now(),
+			},
+			update_modified=False,
+		)
+		frappe.db.commit()
+
+	filters = _detail(doc.detail).get("filters") or {}
+	try:
+		rows = _filtered_payloads(
+			filters.get("search") or None,
+			filters.get("app") or None,
+			filters.get("status") or None,
+			filters.get("kind") or None,
+			filters.get("sort_by") or None,
+			filters.get("sort_order") or "asc",
+			on_progress=on_progress,
+		)
+	except Exception as exc:
+		if "متوقف" in str(exc):
+			_finish(doc, "Cancelled", "خروجی اکسل متوقف شد.")
+			return
+		raise
+	if not _still_owns(doc.name, token):
+		return
+	content = build_workbook(rows)
+	# Leave the File unattached: Frappe then treats a private File as
+	# owner-only, so another System Manager cannot fetch it from
+	# ``/private/files/`` via the attached Operation's read permission.
+	file_doc = save_file(
+		f"persian-translations-{doc.name}.xlsx",
+		content,
+		None,
+		None,
+		is_private=1,
+	)
+	doc.reload()
+	doc.file_url = file_doc.file_url
+	doc.file_name = file_doc.file_name
+	doc.total_rows = len(rows)
+	doc.planned = len(rows)
+	doc.processed = len(rows)
+	_finish(doc, "Completed", f"{len(rows)} ردیف در فایل اکسل نوشته شد.")
+
+
+def _cleanup_old_exports(user: str) -> None:
+	"""Drop this user's previous export files so one user cannot pile up workbooks."""
+	names = frappe.get_all(
+		OPERATION,
+		filters={"kind": EXCEL_EXPORT, "owner": user, "status": ["in", list(FINISHED_STATUSES)]},
+		pluck="name",
+		limit_page_length=50,
+	)
+	for name in names:
+		_delete_operation_files(name)
+		frappe.db.set_value(OPERATION, name, {"file_url": "", "file_name": ""}, update_modified=False)
+
+
+def _delete_operation_files(name: str) -> None:
+	filters = [
+		["file_name", "like", f"persian-translations-{name}%"],
+	]
+	file_url = frappe.db.get_value(OPERATION, name, "file_url")
+	names = set(frappe.get_all("File", filters=filters, pluck="name"))
+	if file_url:
+		names.update(frappe.get_all("File", filters={"file_url": file_url}, pluck="name"))
+	names.update(
+		frappe.get_all(
+			"File",
+			filters={"attached_to_doctype": OPERATION, "attached_to_name": name},
+			pluck="name",
+		)
+	)
+	for file_name in names:
+		frappe.delete_doc("File", file_name, force=1, ignore_permissions=True)

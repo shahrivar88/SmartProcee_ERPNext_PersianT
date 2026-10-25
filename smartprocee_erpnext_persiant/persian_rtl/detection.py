@@ -73,26 +73,49 @@ def detect(adapter: base.Adapter, states: dict | None = None) -> dict:
 
 
 def read_entry_template(adapter: base.Adapter) -> dict:
-	"""Root direction and mount anchor declared by the target's HTML entry point."""
+	"""Root direction and mount anchor declared by the target's HTML entry point.
+
+	CRM 1.85 and 1.89 no longer ship ``crm/www/crm.html``. The SPA is rendered
+	from ``crm/www/crm.py`` and mounted in ``frontend/index.html``. A missing
+	legacy HTML file is not treated as an absent app.
+	"""
 	blank = {"present": False, "direction": "unknown", "anchor_present": False}
 	if not registry.is_installed(adapter.target_app):
 		return blank
-	path = Path(frappe.get_app_path(adapter.target_app)) / Path(adapter.entry_template.split("/", 1)[-1])
-	if not path.exists():
-		return blank
-	try:
-		text = path.read_text(encoding="utf-8", errors="replace")
-	except OSError:
+	package = Path(frappe.get_app_path(adapter.target_app))
+	candidates = [
+		package / Path(adapter.entry_template.split("/", 1)[-1]),
+		package / "www" / f"{adapter.target_app}.html",
+		package.parent / "frontend" / "index.html",
+	]
+	text = ""
+	found_path = None
+	for path in candidates:
+		if not path.is_file():
+			continue
+		try:
+			text = path.read_text(encoding="utf-8", errors="replace")
+		except OSError:
+			continue
+		found_path = path
+		break
+	if found_path is None:
+		py_entry = package / "www" / f"{adapter.target_app}.py"
+		if py_entry.is_file():
+			return {"present": True, "direction": "ltr", "anchor_present": True}
 		return blank
 	root = ROOT_TAG.search(text)
 	direction = "ltr"
 	if root:
 		found = DIR_ATTRIBUTE.search(root.group(0))
 		direction = (found.group(1).strip().lower() if found else "ltr") or "ltr"
+	anchor = bool(adapter.entry_anchor) and adapter.entry_anchor in text
+	if not anchor and found_path.name == "index.html":
+		anchor = 'id="app"' in text or "id='app'" in text
 	return {
 		"present": True,
 		"direction": direction,
-		"anchor_present": bool(adapter.entry_anchor) and adapter.entry_anchor in text,
+		"anchor_present": anchor or found_path.suffix == ".py",
 	}
 
 

@@ -49,9 +49,10 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-09-27 01:40:00.000000",
+ "modified": "2026-10-24 20:00:00.000000",
  "module": "Persian Translation",
  "name": "Persian Translation Source",
+ "translated_doctype": 1,
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [

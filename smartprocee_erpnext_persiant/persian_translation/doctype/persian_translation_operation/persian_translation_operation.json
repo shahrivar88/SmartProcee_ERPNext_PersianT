@@ -45,7 +45,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Operation",
-   "options": "import_preview\nimport_apply\nsnapshot_preview\nsnapshot_restore",
+   "options": "import_preview\nimport_apply\nsnapshot_preview\nsnapshot_restore\nexcel_export",
    "reqd": 1
   },
   {
@@ -235,9 +235,10 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-09 15:00:00.000000",
+ "modified": "2026-10-24 20:00:00.000000",
  "module": "Persian Translation",
  "name": "Persian Translation Operation",
+ "translated_doctype": 1,
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

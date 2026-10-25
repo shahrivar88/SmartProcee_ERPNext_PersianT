@@ -7,6 +7,9 @@ from frappe.tests import IntegrationTestCase
 
 from smartprocee_erpnext_persiant.persian_translation.scan import (
 	SOURCE_DOCTYPE,
+	_scan_menu_records,
+	_scan_workspace_children,
+	collect_messages,
 	message_name,
 	reconcile_index,
 	run_scan,
@@ -110,3 +113,95 @@ class TestScanHelpers(IntegrationTestCase):
 		self.assertNotEqual(name, message_name("erpnext", "Customer", ""))
 		self.assertTrue(re.fullmatch(r"PTS-[0-9a-f]{40}", name))
 		self.assertLessEqual(len(name), 140)
+
+
+MENU_APP_DOCTYPES = ("Workspace", "Workspace Sidebar", "Desktop Icon")
+UNKNOWN_APP_COLUMN = "(1054, \"Unknown column 'app' in 'SELECT'\")"
+
+
+class TestScanMenuSchema(ScanIndexMixin, IntegrationTestCase):
+	"""Ubuntu-class Frappe tables may lack Workspace.app and still must scan."""
+
+	def _deny_menu_app_column(self):
+		original_has = frappe.db.has_column
+		original_get_all = frappe.get_all
+
+		def has_column(doctype, column):
+			if column == "app" and doctype in MENU_APP_DOCTYPES:
+				return False
+			return original_has(doctype, column)
+
+		def get_all(doctype, *args, **kwargs):
+			fields = kwargs.get("fields")
+			if isinstance(fields, (list, tuple)) and "app" in fields and doctype in MENU_APP_DOCTYPES:
+				raise Exception(UNKNOWN_APP_COLUMN)
+			return original_get_all(doctype, *args, **kwargs)
+
+		frappe.db.has_column = has_column
+		frappe.get_all = get_all
+		self.addCleanup(lambda: setattr(frappe.db, "has_column", original_has))
+		self.addCleanup(lambda: setattr(frappe, "get_all", original_get_all))
+
+	def test_published_v1_2_0_query_raises_1054_when_app_is_absent(self):
+		self._deny_menu_app_column()
+		with self.assertRaises(Exception) as context:
+			frappe.get_all("Workspace", fields=["name", "app"], limit_page_length=1)
+		self.assertIn("Unknown column 'app'", str(context.exception))
+
+	def test_menu_scan_runs_when_standard_tables_lack_app(self):
+		self._deny_menu_app_column()
+		before_tr = frappe.db.count("Translation")
+		before_src = frappe.db.count(SOURCE_DOCTYPE)
+		account_installed = bool(frappe.db.exists("DocType", "Account"))
+		before_acc = frappe.db.count("Account") if account_installed else 0
+
+		bucket = {}
+		_scan_menu_records(bucket)
+		_scan_workspace_children(bucket)
+		self.assertTrue(bucket)
+		for row in bucket.values():
+			self.assertTrue(row["app"])
+
+		rows, errors, failed = collect_messages([OWN_APP])
+		self.assertEqual(frappe.db.count("Translation"), before_tr)
+		self.assertEqual(frappe.db.count(SOURCE_DOCTYPE), before_src)
+		if account_installed:
+			self.assertEqual(frappe.db.count("Account"), before_acc)
+		menu_errors = [
+			item for item in errors if item.startswith("منوها:") or item.startswith("فضاهای کاری:")
+		]
+		self.assertFalse(menu_errors, menu_errors)
+		self.assertNotIn(OWN_APP, failed)
+		self.assertTrue(rows)
+		for row in rows:
+			self.assertEqual(row["app"], OWN_APP)
+
+	def test_workspace_children_scan_runs_when_app_is_absent(self):
+		self._deny_menu_app_column()
+		bucket = {}
+		_scan_workspace_children(bucket)
+		self.assertTrue(bucket)
+		for row in bucket.values():
+			self.assertTrue(row["app"])
+			self.assertTrue(
+				row["source_path"].startswith("Workspace"),
+				row["source_path"],
+			)
+
+	def test_menu_scan_skips_a_missing_sidebar_doctype(self):
+		original_exists = frappe.db.exists
+
+		def exists(doctype, name=None):
+			if doctype == "DocType" and name == "Workspace Sidebar":
+				return False
+			return original_exists(doctype, name)
+
+		frappe.db.exists = exists
+		self.addCleanup(lambda: setattr(frappe.db, "exists", original_exists))
+		_scan_menu_records({})
+
+	def test_collect_messages_does_not_need_existing_index_rows(self):
+		rows, errors, failed = collect_messages([OWN_APP])
+		self.assertTrue(rows)
+		self.assertNotIn(OWN_APP, failed)
+		self.assertFalse([item for item in errors if "Unknown column" in item])

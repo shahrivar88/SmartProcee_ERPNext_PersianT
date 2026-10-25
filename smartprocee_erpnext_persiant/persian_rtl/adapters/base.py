@@ -56,6 +56,7 @@ class Adapter:
 	compatible_min: str
 	compatible_max: str
 	stylesheet: str = ""
+	script: str = ""
 	visual_ready: bool = True
 	entry_anchor: str = ""
 	signature_physical: tuple[str, ...] = ()
@@ -81,6 +82,8 @@ class Adapter:
 			raise ValueError(f"{self.adapter_id}: unknown hosting {self.hosting!r}")
 		if self.supports_system_font and self.hosting != STANDALONE:
 			raise ValueError(f"{self.adapter_id}: only a standalone app needs the system font linked")
+		if self.script and ("/" in self.script or "\\" in self.script or ".." in self.script):
+			raise ValueError(f"{self.adapter_id}: script must be a file name, not a path")
 
 	@property
 	def asset_url(self) -> str:
@@ -90,4 +93,14 @@ class Adapter:
 		return (
 			"/assets/smartprocee_erpnext_persiant/css/rtl/"
 			f"{self.target_app}/{self.stylesheet}"
+		)
+
+	@property
+	def script_url(self) -> str:
+		"""Bench-relative URL of the adapter script, or an empty string."""
+		if not self.script:
+			return ""
+		return (
+			"/assets/smartprocee_erpnext_persiant/js/rtl/"
+			f"{self.target_app}/{self.script}"
 		)

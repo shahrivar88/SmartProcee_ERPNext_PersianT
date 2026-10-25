@@ -109,7 +109,7 @@ class TestAdapterContract(UnitTestCase):
 class TestPortability(UnitTestCase):
 	def test_no_adapter_declares_a_machine_specific_path(self):
 		for adapter in registry.all_adapters().values():
-			for value in (adapter.entry_template, adapter.stylesheet, adapter.asset_url):
+			for value in (adapter.entry_template, adapter.stylesheet, adapter.script, adapter.asset_url, adapter.script_url):
 				with self.subTest(f"{adapter.adapter_id} :: {value}"):
 					self.assertFalse(ABSOLUTE_PATH.search(value or ""), value)
 
@@ -117,6 +117,7 @@ class TestPortability(UnitTestCase):
 		for adapter in registry.all_adapters().values():
 			with self.subTest(adapter.adapter_id):
 				self.assertIsNone(HASHED_ASSET.search(adapter.stylesheet or ""))
+				self.assertIsNone(HASHED_ASSET.search(adapter.script or ""))
 				self.assertIsNone(HASHED_ASSET.search(adapter.entry_template or ""))
 
 	def test_exclusion_selectors_carry_no_paths(self):
@@ -149,6 +150,25 @@ class TestVersionState(IntegrationTestCase):
 		self.assertTrue(low <= registry.parse_version("1.85.1") <= high)
 		self.assertTrue(low <= registry.parse_version("1.85.2") <= high)
 		self.assertFalse(low <= registry.parse_version("1.86.0") <= high)
+
+	def test_crm_adapter_range_covers_185_and_189(self):
+		from smartprocee_erpnext_persiant.persian_rtl.adapters.crm.adapter import ADAPTER
+
+		low = registry.parse_version(ADAPTER.compatible_min)
+		high = registry.parse_version(ADAPTER.compatible_max)
+		self.assertTrue(low <= registry.parse_version("1.85.1") <= high)
+		self.assertTrue(low <= registry.parse_version("1.89.1") <= high)
+		self.assertFalse(registry.parse_version("1.90.0") <= high)
+
+	def test_insights_adapter_range_covers_314_and_315(self):
+		from smartprocee_erpnext_persiant.persian_rtl.adapters.insights.adapter import ADAPTER
+
+		low = registry.parse_version(ADAPTER.compatible_min)
+		high = registry.parse_version(ADAPTER.compatible_max)
+		self.assertTrue(low <= registry.parse_version("3.14.2") <= high)
+		self.assertTrue(low <= registry.parse_version("3.15.1") <= high)
+		self.assertFalse(registry.parse_version("3.16.0") <= high)
+		self.assertFalse(ADAPTER.visual_ready)
 
 
 ADMIN_FIELDS = ("enabled", "override_version_check", "use_system_font", "admin_notes")

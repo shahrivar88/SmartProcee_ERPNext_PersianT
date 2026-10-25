@@ -117,3 +117,22 @@ class TestAdapterStylesheet(UnitTestCase):
 	def test_crm_is_the_only_adapter_with_a_stylesheet(self):
 		with_stylesheet = {a.adapter_id for a in registry.all_adapters().values() if a.stylesheet}
 		self.assertEqual(with_stylesheet, {"crm"})
+
+	def test_the_list_column_handle_is_mirrored(self):
+		self.assertIn(".-right-2", adapter_css())
+		self.assertIn("inset-inline-end:-.5rem", adapter_css())
+
+	def test_the_apps_submenu_follows_document_direction(self):
+		css = adapter_css()
+		self.assertIn(".menu-content{direction:rtl;text-align:start}", css)
+		self.assertIn(".menu-content .lucide-chevron-right{transform:scaleX(-1)}", css)
+
+	def test_the_apps_screen_logo_is_this_app_s_asset(self):
+		from pathlib import Path
+
+		from smartprocee_erpnext_persiant.hooks import add_to_apps_screen
+
+		logo = add_to_apps_screen[0]["logo"]
+		self.assertEqual(logo, "/assets/smartprocee_erpnext_persiant/images/logo.svg")
+		public = Path(__file__).resolve().parents[2] / "public" / "images" / "logo.svg"
+		self.assertTrue(public.is_file(), public)

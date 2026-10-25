@@ -36,7 +36,8 @@ BROWSER_ENDPOINTS = {
 		f"{MANAGER}.save_translations": "POST",
 		f"{MANAGER}.start_scan": "POST",
 		f"{MANAGER}.scan_status": "POST",
-		f"{MANAGER}.export_excel": "GET",
+		f"{MANAGER}.start_export": "POST",
+		f"{MANAGER}.download_export": "GET",
 		f"{MANAGER}.preview_import": "POST",
 		f"{MANAGER}.apply_import": "POST",
 		f"{MANAGER}.operation_status": "POST",
@@ -75,6 +76,7 @@ DUMMY_ARGS = {
 	"operation_cancel": {"name": "PTOP-missing"},
 	"operation_resume": {"name": "PTOP-missing"},
 	"operation_errors": {"name": "PTOP-missing"},
+	"download_export": {"name": "PTOP-missing"},
 	"snapshot_preview": {"name": "PSNAP-missing"},
 	"snapshot_restore": {"name": "PSNAP-missing", "confirm": 1},
 	"save_face_mapping": {"name": "missing", "mapping": "[]"},
@@ -87,6 +89,7 @@ DUMMY_ARGS = {
 MUTATIONS = (
 	f"{MANAGER}.save_translations",
 	f"{MANAGER}.start_scan",
+	f"{MANAGER}.start_export",
 	f"{MANAGER}.preview_import",
 	f"{MANAGER}.apply_import",
 	f"{MANAGER}.operation_cancel",
@@ -129,7 +132,7 @@ def client_calls(relative: str) -> set[str]:
 	if relative == MANAGER_JS:
 		names = set(re.findall(r'method \+ "\.(\w+)[?"]', source))
 		names |= set(re.findall(r'\.queue\(\s*"(\w+)"', source))
-		names |= set(re.findall(r'open_download\(\w+, "(\w+)"', source))
+		names |= set(re.findall(r'open_download\([^,]+, "(\w+)"', source))
 		return {f"{MANAGER}.{name}" for name in names}
 	if relative == FONT_JS:
 		names = set(re.findall(r'this\.call\("(\w+)"', source))
@@ -252,9 +255,13 @@ class TestRouteIsolation(IntegrationTestCase):
 	"""Persianizer client code runs only on its own pages."""
 
 	def test_the_app_ships_no_desk_wide_script(self):
-		for hook in ("app_include_js", "doctype_js", "doctype_list_js", "page_js", "web_include_js"):
-			with self.subTest(hook=hook):
-				self.assertFalse(getattr(hooks, hook, None))
+		self.assertFalse(getattr(hooks, "app_include_js", None))
+		self.assertFalse(getattr(hooks, "page_js", None))
+		self.assertFalse(getattr(hooks, "web_include_js", None))
+		account_only = {"Account": "public/js/account_display.js"}
+		self.assertEqual(getattr(hooks, "doctype_js", None), account_only)
+		self.assertEqual(getattr(hooks, "doctype_list_js", None), account_only)
+		self.assertEqual(getattr(hooks, "doctype_tree_js", None), account_only)
 
 	def test_every_deferred_manager_call_checks_the_active_route(self):
 		"""A poll or late callback must not call the server from another route.
@@ -297,6 +304,11 @@ class TestRouteIsolation(IntegrationTestCase):
 		self.assertLess(on_change.index("=== this._requested"), on_change.index("this.load()"))
 		load = re.search(r"\n\tload\(\) \{\n(.*?)\n\t\}\n", source, re.S).group(1)
 		self.assertIn("this._requested = JSON.stringify(args);", load)
+
+	def test_import_progress_explains_the_wait(self):
+		source = read_client(MANAGER_JS)
+		self.assertIn("در حال پردازش فایل؛ لطفاً منتظر بمانید و این پنجره را نبندید.", source)
+		self.assertIn("is_running(operation.status)", source)
 
 	def test_no_manager_class_defines_a_method_twice(self):
 		"""A JS class keeps the last definition, so a reused name silently replaces the first."""

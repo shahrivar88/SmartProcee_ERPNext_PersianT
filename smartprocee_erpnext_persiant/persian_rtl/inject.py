@@ -3,6 +3,7 @@
 Two edits, both additive, both idempotent:
 
 * one ``<link>`` to this app's adapter stylesheet, placed just before ``</head>``
+* one optional ``<script>`` for an adapter-specific RTL calculation, when declared
 * ``dir="rtl"`` on the document root, keeping every other root attribute untouched
 
 ``lang`` is never changed. Enabling RTL must not quietly reflow typography or
@@ -121,7 +122,36 @@ def link_tag(adapter: base.Adapter) -> str:
 	url = adapter.asset_url
 	if not url:
 		return ""
-	return f'<link rel="stylesheet" href="{url}" {MARKER}="{adapter.adapter_id}">'
+	version = _asset_version(url)
+	href = f"{url}?v={version}" if version else url
+	return f'<link rel="stylesheet" href="{href}" {MARKER}="{adapter.adapter_id}">'
+
+
+def _asset_version(asset_url: str) -> str:
+	"""Cache-bust the adapter stylesheet when its bytes change.
+
+	The CRM SPA keeps ``adapter.css`` for the tab lifetime. Without a query
+	the browser (and some proxies) keep serving a pre-hotfix copy after a
+	bind-mounted edit. File mtime is enough; fall back to the app version.
+	"""
+	try:
+		from smartprocee_erpnext_persiant.persian_rtl.detection import stylesheet_path
+
+		path = stylesheet_path(asset_url)
+		if path.is_file():
+			return str(int(path.stat().st_mtime))
+	except Exception:
+		pass
+	from smartprocee_erpnext_persiant import __version__
+
+	return __version__
+
+
+def script_tag(adapter: base.Adapter) -> str:
+	url = adapter.script_url
+	if not url:
+		return ""
+	return f'<script src="{url}" {MARKER}-script="{adapter.adapter_id}" defer></script>'
 
 
 def uses_system_font(adapter: base.Adapter, states: dict | None = None) -> bool:
@@ -176,7 +206,7 @@ def inject(html: str, adapter: base.Adapter, states: dict | None = None) -> str:
 	"""Return ``html`` with the adapter applied, or the original text untouched."""
 	if MARKER in html:
 		return html
-	parts = (link_tag(adapter), font_link_tag(adapter, states), style_tag(adapter))
+	parts = (link_tag(adapter), script_tag(adapter), font_link_tag(adapter, states), style_tag(adapter))
 	payload = "\n".join(part for part in parts if part)
 	if not payload:
 		return html

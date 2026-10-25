@@ -2,6 +2,48 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.2.1]
+
+### Translation Manager
+
+- Text scan no longer fails on Frappe sites whose Workspace, Workspace Sidebar, or Desktop Icon tables have no `app` column. The scanner reads only columns that exist and still classifies each row by module or explicit app.
+- If a required Persianizer column is missing, the manager explains the missing schema in Persian and asks for `bench migrate` on that site.
+
+### Native Desk UI
+
+- After install, a Persian session shows this app's own module and DocType names in Persian. The labels ship as Gettext (`locale/fa.po`) and are compiled on install and migrate. They are not added to the public `fa.csv` catalogue.
+
+### Account display
+
+- The Account Category translation flag is written only when the site has no Property Setter for it. An existing customization is left unchanged.
+
+### Desk navigation
+
+- Persianizer no longer ships a right-hand Workspace Sidebar. The home icon, Apps screen entry and navbar shortcut stay and open Translation Manager.
+- The home icon is a top-level External Desktop Icon. Nested `Page` + `Framework` icons disappear on Frappe 16.53.
+- A Persian boot session translates dock and sidebar display labels. Module identifiers stay English.
+
+### Excel workflow
+
+- A full translation export runs as a `long` background operation. The browser receives an operation id, then an owner-only private download.
+- Export workbooks are private, unattached Files. Frappe's File download path and this app's File permission hook both refuse any user who is not the owner.
+
+### Display labels
+
+- Role titles that this catalogue cannot own (`Insights User`, `Raven Admin`, `Employee Self Service`) and CRM `Call Logs` ship as Translation rows. `Role`, `Customer` and `Supplier` get `translated_doctype` only when the site has no Property Setter for that flag.
+
+### CRM
+
+- The CRM RTL adapter accepts CRM 1.85.x through 1.89.x. Version 1.89.1 is no longer skipped as a mismatch.
+- CRM 1.89.1 moved sidebar labels to `frontend/src/utils/navigation.js`. The scanner reads that file as well as the older `AppSidebar.vue` list.
+- RTL and font injection follow the signed-in user's language when the CRM page request language is not Persian.
+- The UserDropdown Apps submenu follows the document direction. The submenu caret points toward the panel.
+- The Apps screen entry for this app now ships a logo.
+
+### Known limitations
+
+- CRM list cells that print `Incoming` and the frappe-ui `Load More` footer stay English. Those strings have catalogue rows, but the upstream UI does not call the translation lookup. This release does not rewrite CRM or frappe-ui.
+
 ## [1.2.0]
 
 ### Translation Manager

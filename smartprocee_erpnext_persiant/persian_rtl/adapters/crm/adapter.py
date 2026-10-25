@@ -39,8 +39,11 @@ ADAPTER = Adapter(
 	routes=("/crm/*", "/crm-form/*"),
 	tested_versions=("1.85.1",),
 	compatible_min="1.85.0",
-	compatible_max="1.85.99",
+	compatible_max="1.89.99",
 	stylesheet="adapter.css",
+	# ListHeaderItem resizes with a physical clientX delta; this script inverts
+	# that delta only while the mirrored list-column handle is dragged.
+	script="list-resize.js",
 	# Physical utilities that prove the front end still needs mirroring.
 	signature_physical=(
 		"ml-2",
@@ -117,12 +120,11 @@ ADAPTER = Adapter(
 	# its icons are inline SVG, so the adapter font rules leave all of them alone.
 	supports_system_font=True,
 	notes=(
-		"Verified against CRM 1.85.1. The 87 physical utilities covered by "
-		"adapter.css were read from the built frontend stylesheets of that build; "
-		"the signature check reports it when they change. CRM 1.85.1 also already "
-		"emits a small set of logical utilities (ms-2, me-2, ps-3, pe-3, text-start, "
-		"text-end, border-s, start-0, end-0), so the front end is partially "
-		"converted; when the physical utilities disappear this adapter can be "
-		"retired, and the diagnostics report says so."
+		"Visually verified against CRM 1.85.1. CRM 1.89.1 still serves /crm as a "
+		"standalone SPA (crm/www/crm.py, no crm.html) and still uses physical "
+		"Tailwind utilities plus ListHeaderItem clientX resize. The adapter range "
+		"includes 1.89.x so a matching site is not skipped as a version mismatch. "
+		"Live browser proof on 1.89.1 is recorded separately. When the physical "
+		"utilities disappear this adapter can be retired."
 	),
 )

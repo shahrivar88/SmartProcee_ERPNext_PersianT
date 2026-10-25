@@ -823,6 +823,13 @@ class PersianTranslationManager {
 			run.render_html(restore_report_html(operation, detail.preview || {}));
 		} else if (operation.kind === "import_preview") {
 			run.render_html(import_preview_html(operation, detail.report || {}));
+		} else if (operation.kind === "excel_export") {
+			run.render_html(export_result_html(operation));
+			if (operation.status === "Completed" && operation.file_url) {
+				run.button("دانلود فایل اکسل", true, () =>
+					open_download(this.method, "download_export", { name: operation.name })
+				);
+			}
 		} else {
 			run.render_html(import_result_html(operation));
 		}
@@ -856,13 +863,9 @@ class PersianTranslationManager {
 
 	export_excel() {
 		const { start, page_length, ...args } = this.filters();
-		const params = new URLSearchParams();
-		Object.keys(args).forEach((key) => {
-			if (args[key] !== undefined && args[key] !== null && args[key] !== "") {
-				params.set(key, args[key]);
-			}
+		this.queue("start_export", args, "خروجی اکسل", (operation, run) => {
+			this.show_report(operation, run);
 		});
-		window.open(frappe.urllib.get_full_url("/api/method/" + this.method + ".export_excel?" + params.toString()));
 	}
 
 	import_excel() {
@@ -958,6 +961,7 @@ const OPERATION_KIND_LABELS = {
 	import_apply: "اعمال فایل اکسل",
 	snapshot_preview: "پیش‌نمایش بازگردانی",
 	snapshot_restore: "بازگردانی نسخهٔ پشتیبان",
+	excel_export: "خروجی اکسل",
 };
 
 const SNAPSHOT_KIND_LABELS = {
@@ -1066,7 +1070,16 @@ class PersianTranslationRun {
 
 	update(operation) {
 		const status = OPERATION_STATUS_LABELS[operation.status] || operation.status || "";
-		this.$status.text(`${operation_title(operation)} — ${status}`);
+		const title = operation_title(operation);
+		if (is_running(operation.status)) {
+			this.$status.text(
+				`${title} — ${status}. در حال پردازش فایل؛ لطفاً منتظر بمانید و این پنجره را نبندید.`
+			);
+		} else if (operation.summary) {
+			this.$status.text(`${title} — ${status} · ${operation.summary}`);
+		} else {
+			this.$status.text(`${title} — ${status}`);
+		}
 		this.$counters.empty();
 		if (cint(operation.planned)) {
 			$(`<span class="ptm-badge"></span>`)
@@ -1083,9 +1096,6 @@ class PersianTranslationRun {
 			.forEach(([label, value]) =>
 				$(`<span class="ptm-badge"></span>`).text(`${label}: ${value}`).appendTo(this.$counters)
 			);
-		if (operation.summary) {
-			this.$status.text(`${operation_title(operation)} — ${status} · ${operation.summary}`);
-		}
 	}
 
 	render_html(html) {
@@ -1137,6 +1147,17 @@ function import_preview_html(operation, report) {
 	}
 	html += `<p class="ptm-note">فقط ردیف‌های معتبرِ تازه یا تغییر‌یافته اعمال می‌شوند؛ هر ردیف نامعتبر جداگانه گزارش می‌شود.</p>`;
 	return html;
+}
+
+function export_result_html(operation) {
+	const total = cint(operation.processed) || cint(operation.total_rows);
+	if (operation.status === "Completed") {
+		return `<p>${total} ردیف در فایل اکسل نوشته شد. دانلود فقط برای صاحب همین خروجی است.</p>`;
+	}
+	if (operation.summary) {
+		return `<p>${esc(operation.summary)}</p>`;
+	}
+	return `<p>خروجی اکسل — ${esc(OPERATION_STATUS_LABELS[operation.status] || operation.status || "")}</p>`;
 }
 
 function import_result_html(operation) {
@@ -1356,6 +1377,12 @@ class PersianTranslationOperations {
 			$(`<button class="btn btn-xs btn-default"></button>`)
 				.text("نمایش گزارش")
 				.on("click", () => this.show_report(operation))
+				.appendTo($actions);
+		}
+		if (operation.kind === "excel_export" && operation.status === "Completed" && operation.file_url) {
+			$(`<button class="btn btn-xs btn-primary"></button>`)
+				.text("دانلود فایل اکسل")
+				.on("click", () => open_download(this.method, "download_export", { name: operation.name }))
 				.appendTo($actions);
 		}
 		if (operation_has_errors(operation)) {

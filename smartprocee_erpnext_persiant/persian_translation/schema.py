@@ -43,6 +43,12 @@ RTL_DOCTYPES = (
 
 REQUIRED_DOCTYPES = TRANSLATION_DOCTYPES + RTL_DOCTYPES
 
+# Columns the manager queries by name. A DocType record can exist while a
+# column from a later app version is still missing.
+REQUIRED_COLUMNS = {
+	"Persian Translation Source": ("app", "source_text", "context", "module", "source_path"),
+}
+
 SCHEMA_TITLE = "ساختار پایگاه داده فارسی‌ساز نیاز به بروزرسانی دارد"
 MIGRATE_HINT = "روی همین سایت دستور «bench migrate» را اجرا کنید تا جداول ساخته شوند."
 
@@ -57,18 +63,35 @@ def missing_doctypes(doctypes: tuple[str, ...] = REQUIRED_DOCTYPES) -> list[str]
 	return cache[doctypes]
 
 
+def missing_columns(doctypes: tuple[str, ...] = REQUIRED_DOCTYPES) -> list[str]:
+	"""Required columns that are absent from an otherwise present table."""
+	absent_doctypes = set(missing_doctypes(doctypes))
+	missing = []
+	for doctype in doctypes:
+		if doctype in absent_doctypes:
+			continue
+		for column in REQUIRED_COLUMNS.get(doctype, ()):
+			if not frappe.db.table_exists(doctype) or not frappe.db.has_column(doctype, column):
+				missing.append(f"{doctype}.{column}")
+	return missing
+
+
+def missing_schema(doctypes: tuple[str, ...] = REQUIRED_DOCTYPES) -> list[str]:
+	return list(missing_doctypes(doctypes)) + missing_columns(doctypes)
+
+
 def is_ready(doctypes: tuple[str, ...] = REQUIRED_DOCTYPES) -> bool:
-	return not missing_doctypes(doctypes)
+	return not missing_schema(doctypes)
 
 
 def require_ready(doctypes: tuple[str, ...] = REQUIRED_DOCTYPES) -> None:
 	"""Refuse with the real reason when the site has not been migrated."""
-	absent = missing_doctypes(doctypes)
+	absent = missing_schema(doctypes)
 	if not absent:
 		return
 	listed = "، ".join(escape_html(name) for name in absent)
 	frappe.throw(
-		f"{SCHEMA_TITLE}.<br><br>DocTypeهای غایب: {listed}<br><br>{MIGRATE_HINT}",
+		f"{SCHEMA_TITLE}.<br><br>موارد غایب: {listed}<br><br>{MIGRATE_HINT}",
 		title=SCHEMA_TITLE,
 	)
 

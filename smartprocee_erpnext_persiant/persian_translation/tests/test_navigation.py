@@ -1,10 +1,9 @@
 """Navigation and install/uninstall lifecycle.
 
-`فارسی‌ساز` is the single Persianizer entry point. Frappe 16 needs all of:
-the Workspace Sidebar (the navigation itself), the Desktop Icon (app switcher
-and awesome bar) and the `add_to_apps_screen` hook (the `/apps` screen). The
-Navbar Settings dropdown is a fourth, deliberate shortcut. The empty
-"Persian Translation" sidebar was an obsolete artifact and must stay gone.
+`فارسی‌ساز` stays on the Desktop Icon, the Apps screen and the navbar. It must
+not appear in the right Workspace Sidebar. Translation Manager and Font Manager
+remain reachable as System Manager pages. The empty "Persian Translation"
+sidebar was an obsolete artifact and must stay gone.
 """
 
 import json
@@ -32,43 +31,14 @@ def navbar_labels() -> list[str]:
 
 
 class TestPersianSidebar(IntegrationTestCase):
-	def test_the_app_ships_exactly_one_sidebar_with_items(self):
-		sidebars = frappe.get_all(
-			"Workspace Sidebar",
-			filters={"app": APP_NAME},
-			fields=["name", "title"],
-			order_by="name",
-		)
-		self.assertEqual([row.name for row in sidebars], [MENU_LABEL])
+	def test_the_app_ships_no_workspace_sidebar(self):
+		filters = {"app": APP_NAME} if frappe.db.has_column("Workspace Sidebar", "app") else {"name": MENU_LABEL}
+		self.assertEqual(frappe.get_all("Workspace Sidebar", filters=filters, pluck="name"), [])
+		self.assertFalse(frappe.db.exists("Workspace Sidebar", MENU_LABEL))
 
-	def test_the_sidebar_links_the_manager_pages(self):
-		doc = frappe.get_doc("Workspace Sidebar", MENU_LABEL)
-		self.assertEqual(doc.title, MENU_LABEL)
-		self.assertEqual(doc.header_icon, "languages")
-		links = {row.label: (row.link_type, row.link_to) for row in doc.items}
-		self.assertEqual(
-			links,
-			{
-				"مدیریت ترجمه": ("Page", "persian-translation-manager"),
-				"مدیریت فونت سیستم": ("Page", "persian-system-font-manager"),
-				"مدیریت سازگاری راست‌به‌چپ": ("DocType", RTL_DOCTYPE),
-			},
-		)
-
-	def test_the_sidebar_fixture_is_the_shipped_navigation(self):
-		"""Navigation is versioned JSON synced by migrate, not a DB edit made at runtime."""
+	def test_the_sidebar_fixture_is_not_shipped(self):
 		path = Path(frappe.get_app_path(APP_NAME, "workspace_sidebar")) / f"{MENU_LABEL}.json"
-		with path.open(encoding="utf-8") as handle:
-			fixture = json.load(handle)
-		self.assertEqual(fixture["standard"], 1)
-		self.assertEqual(
-			[(row["label"], row["link_type"], row["link_to"]) for row in fixture["items"]],
-			[
-				("مدیریت ترجمه", "Page", "persian-translation-manager"),
-				("مدیریت فونت سیستم", "Page", "persian-system-font-manager"),
-				("مدیریت سازگاری راست‌به‌چپ", "DocType", RTL_DOCTYPE),
-			],
-		)
+		self.assertFalse(path.exists())
 
 	def test_the_rtl_settings_page_exists_and_is_system_manager_only(self):
 		self.assertTrue(frappe.db.exists("DocType", RTL_DOCTYPE))
@@ -94,16 +64,38 @@ class TestPersianSidebar(IntegrationTestCase):
 		patch.execute()
 		self.assertFalse(frappe.db.exists("Workspace Sidebar", LEGACY_SIDEBAR))
 
+	def test_the_sidebar_removal_patch_deletes_this_app_sidebar_only(self):
+		from smartprocee_erpnext_persiant.patches.v1_2 import remove_persianizer_workspace_sidebar as patch
+
+		patch.execute()
+		self.assertFalse(frappe.db.exists("Workspace Sidebar", MENU_LABEL))
+		self.assertFalse(frappe.db.exists("Workspace Sidebar", LEGACY_SIDEBAR))
+
 
 class TestDeskEntryPoints(IntegrationTestCase):
-	def test_desktop_icon_points_at_the_sidebar(self):
+	def test_desktop_icon_points_at_the_manager_page(self):
+		from smartprocee_erpnext_persiant.desk_icon import HOME_LINK, PAGE_ROUTE, ensure_home_icon
+
+		ensure_home_icon()
 		icon = frappe.get_doc(ICON, MENU_LABEL)
 		self.assertEqual(icon.label, MENU_LABEL)
-		self.assertEqual(icon.link_type, "Workspace Sidebar")
-		self.assertEqual(icon.link_to, MENU_LABEL)
-		self.assertEqual(icon.parent_icon, "Framework")
+		self.assertIn(icon.link_type, ("Page", "External"))
+		if icon.link_type == "Page":
+			self.assertEqual(icon.link_to, PAGE_ROUTE)
+		self.assertEqual(icon.link, HOME_LINK)
+		self.assertFalse(icon.parent_icon)
 		self.assertEqual(icon.standard, 1)
 		self.assertFalse(icon.hidden)
+		self.assertEqual([row.role for row in icon.roles], ["System Manager"])
+		self.assertFalse(frappe.db.exists("Workspace Sidebar", MENU_LABEL))
+
+	def test_the_home_icon_fixture_is_a_top_level_external_link(self):
+		path = Path(frappe.get_app_path(APP_NAME, "desktop_icon")) / f"{MENU_LABEL}.json"
+		fixture = json.loads(path.read_text(encoding="utf-8"))
+		self.assertEqual(fixture["link_type"], "External")
+		self.assertEqual(fixture["link"], "/app/persian-translation-manager")
+		self.assertFalse(fixture.get("parent_icon"))
+		self.assertEqual(fixture["standard"], 1)
 
 	def test_apps_screen_entry_uses_the_permission_hook(self):
 		entries = [entry for entry in hooks.add_to_apps_screen if entry["name"] == APP_NAME]
@@ -131,13 +123,12 @@ class TestInstallLifecycle(IntegrationTestCase):
 		self.assertEqual(navbar_labels().count(MENU_LABEL), 1)
 		self.assertEqual(frappe.db.count("Persian Font Family", {"source": "Bundled"}), 0)
 		self.assertEqual(frappe.db.count(ICON, {"name": MENU_LABEL}), 1)
-		self.assertEqual(frappe.db.count("Workspace Sidebar", {"app": APP_NAME}), 1)
+		if frappe.db.has_column("Workspace Sidebar", "app"):
+			self.assertEqual(frappe.db.count("Workspace Sidebar", {"app": APP_NAME}), 0)
+		self.assertFalse(frappe.db.exists("Workspace Sidebar", MENU_LABEL))
 
-	def test_install_does_not_create_a_second_sidebar(self):
-		self.assertEqual(
-			frappe.get_all("Workspace Sidebar", filters={"app": APP_NAME}, pluck="name"),
-			[MENU_LABEL],
-		)
+	def test_install_does_not_create_a_persianizer_sidebar(self):
+		self.assertFalse(frappe.db.exists("Workspace Sidebar", MENU_LABEL))
 
 
 class TestUninstallCleanup(IntegrationTestCase):

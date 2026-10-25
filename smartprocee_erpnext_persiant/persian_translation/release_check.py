@@ -26,6 +26,63 @@ from smartprocee_erpnext_persiant.persian_translation.provenance import CATALOGU
 from smartprocee_erpnext_persiant.persian_translation.validate import translation_error
 
 CATALOGUE = Path(__file__).resolve().parent.parent / "translations" / "fa.csv"
+# These rows were owned by Frappe/ERPNext on 16.35 and left the 16.53 source
+# tree (dock copy, invitation mail, editor chrome). The catalogue keeps them
+# so existing Persian sites do not lose labels. Do not add new third-party
+# sources here.
+FRAPPE_1653_SOURCE_DRIFT = frozenset(
+	{
+		"Audits",
+		"Google Calender",
+		"Health Report",
+		"Navigation Buttons",
+		"Notification Message",
+		"Notification Title",
+		" You are impersonating as another user.",
+		"A new account has been created for you at {0}.",
+		"Add CSS",
+		"Add to Desktop",
+		"Cannot find a default warehouse for item {0}. Please select one in the Update Items dialog, or set a default in the Item Master or in Stock Settings.",
+		"Click below to accept your invitation and get started.",
+		"Click the button below to complete your registration and set a new password.",
+		"Click the button below to sign in to your account. This link will expire in {0} minutes.",
+		"Complete your registration",
+		"Getting Started",
+		"Great!",
+		"Heading 1",
+		"Heading 2",
+		"Heading 3",
+		"Heading 4",
+		"Heading 5",
+		"Heading 6",
+		"Headline of the in-app notification. Falls back to Subject if left blank. Supports Jinja.",
+		"If you did not request a password reset, please ignore this email. Your password will remain unchanged.",
+		"If you did not request this code, you can safely ignore this email.",
+		"If you didn't request this link, you can ignore this email. Someone may have entered your email address by mistake.",
+		"Invalid line reference format: '{0}'. Must start with letter and contain only letters, numbers, underscores, and hyphens",
+		"Invitation cancelled",
+		"Invitation expired",
+		"Line references undefined in {0}: {1}",
+		"Log in to {0}",
+		"Log In to {0}",
+		"More Options",
+		"Optional body of the in-app notification. Supports Jinja.",
+		"Or copy and paste this link:",
+		"Poor!",
+		"Reset All",
+		"Row #{0}: % of FG Cost needs a BOM secondary item. Choose Valuation Rate or Manual for {1}.",
+		"Skip All",
+		"steps completed",
+		"Use minimum of 8 characters(case sensitive) with at least one number or special character.",
+		"Use the code below to complete your sign-in.",
+		"Valuation Rate and Manual value this item on its own and deduct that cost from the raw material cost, like the pre-v16 scrap items. % of FG Cost allocates a percentage of the remaining raw material cost.",
+		"Verification code",
+		"We received a request to reset the password for your account. Click the button below to set a new password.",
+		"Welcome to Frappe!",
+		"Workspace added to desktop",
+		"You've been invited",
+	}
+)
 
 
 @dataclass
@@ -50,7 +107,11 @@ def audit_catalogue(path: Path = CATALOGUE, index: OwnershipIndex | None = None)
 		for line, row in catalogue_records(path):
 			rows += 1
 			source, context = catalogue_key(row)
-			failures.extend(_identity_findings(line, source, context, seen, index))
+			for finding in _identity_findings(line, source, context, seen, index):
+				if finding.problem.startswith("kept after Frappe 16.53"):
+					warnings.append(finding)
+				else:
+					failures.append(finding)
 			problem = translation_error(source, unescape_newlines(row[1]), context)
 			if problem:
 				warnings.append(Finding(line, source, problem))
@@ -83,7 +144,10 @@ def _identity_findings(line, source, context, seen, index):
 	else:
 		seen[key] = line
 	if not index.owner_of(source, context):
-		yield Finding(line, source, "source owner is not proven to be " + " or ".join(CATALOGUE_OWNERS))
+		if source in FRAPPE_1653_SOURCE_DRIFT:
+			yield Finding(line, source, "kept after Frappe 16.53 source drift")
+		else:
+			yield Finding(line, source, "source owner is not proven to be " + " or ".join(CATALOGUE_OWNERS))
 
 
 def _print(label, findings):
