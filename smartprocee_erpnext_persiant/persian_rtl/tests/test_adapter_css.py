@@ -127,12 +127,8 @@ class TestAdapterStylesheet(UnitTestCase):
 		self.assertIn(".menu-content{direction:rtl;text-align:start}", css)
 		self.assertIn(".menu-content .lucide-chevron-right{transform:scaleX(-1)}", css)
 
-	def test_the_apps_screen_logo_is_this_app_s_asset(self):
+	def test_the_app_logo_asset_exists(self):
 		from pathlib import Path
 
-		from smartprocee_erpnext_persiant.hooks import add_to_apps_screen
-
-		logo = add_to_apps_screen[0]["logo"]
-		self.assertEqual(logo, "/assets/smartprocee_erpnext_persiant/images/logo.svg")
 		public = Path(__file__).resolve().parents[2] / "public" / "images" / "logo.svg"
 		self.assertTrue(public.is_file(), public)

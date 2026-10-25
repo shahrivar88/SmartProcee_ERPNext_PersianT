@@ -1,9 +1,9 @@
 """Navigation and install/uninstall lifecycle.
 
-`فارسی‌ساز` stays on the Desktop Icon, the Apps screen and the navbar. It must
-not appear in the right Workspace Sidebar. Translation Manager and Font Manager
-remain reachable as System Manager pages. The empty "Persian Translation"
-sidebar was an obsolete artifact and must stay gone.
+`فارسی‌ساز` stays on the Desktop Icon. It must not appear on the Apps screen,
+the header Apps switcher, or the navbar. Opening the home icon must show the
+contextual Sidebar. Persian RTL is code-only so the Modules switcher stays
+hidden. The empty "Persian Translation" Workspace Sidebar must stay gone.
 """
 
 import json
@@ -88,6 +88,10 @@ class TestDeskEntryPoints(IntegrationTestCase):
 		self.assertFalse(icon.hidden)
 		self.assertEqual([row.role for row in icon.roles], ["System Manager"])
 		self.assertFalse(frappe.db.exists("Workspace Sidebar", MENU_LABEL))
+		if frappe.get_meta(ICON).has_field("icon_type"):
+			options = (frappe.get_meta(ICON).get_field("icon_type").options or "").split("\n")
+			if "Link" in options:
+				self.assertEqual(icon.icon_type, "Link")
 
 	def test_the_home_icon_fixture_is_a_top_level_external_link(self):
 		path = Path(frappe.get_app_path(APP_NAME, "desktop_icon")) / f"{MENU_LABEL}.json"
@@ -97,30 +101,59 @@ class TestDeskEntryPoints(IntegrationTestCase):
 		self.assertFalse(fixture.get("parent_icon"))
 		self.assertEqual(fixture["standard"], 1)
 
-	def test_apps_screen_entry_uses_the_permission_hook(self):
-		entries = [entry for entry in hooks.add_to_apps_screen if entry["name"] == APP_NAME]
-		self.assertEqual(len(entries), 1)
-		entry = entries[0]
-		self.assertEqual(entry["title"], MENU_LABEL)
-		self.assertEqual(entry["route"], hooks.app_home)
-		from smartprocee_erpnext_persiant.permissions import has_app_permission
+	def test_the_app_is_not_on_the_apps_screen(self):
+		self.assertFalse(getattr(hooks, "add_to_apps_screen", None))
 
-		self.assertTrue(has_app_permission())
+	def test_navbar_item_is_not_registered(self):
+		from smartprocee_erpnext_persiant.install import remove_navbar_item
 
-	def test_navbar_item_is_registered_exactly_once(self):
-		self.assertEqual(navbar_labels().count(MENU_LABEL), 1)
+		remove_navbar_item()
+		self.assertEqual(navbar_labels().count(MENU_LABEL), 0)
 
-	def test_navbar_sync_is_idempotent(self):
+	def test_navbar_sync_does_not_bring_the_item_back(self):
+		from smartprocee_erpnext_persiant.install import remove_navbar_item
+
+		remove_navbar_item()
 		sync_standard_items()
 		sync_standard_items()
-		self.assertEqual(navbar_labels().count(MENU_LABEL), 1)
+		self.assertEqual(navbar_labels().count(MENU_LABEL), 0)
+
+	def test_only_the_rtl_module_is_code_only(self):
+		self.assertEqual(set(hooks.code_only_modules), {"Persian RTL"})
+		try:
+			from frappe.desk.doctype.sidebar.sidebar import get_navigable_modules
+			from frappe.utils.modules import get_code_only_modules
+		except ImportError:
+			return
+		code_only = get_code_only_modules()
+		self.assertNotIn("Persian Translation", code_only)
+		self.assertIn("Persian RTL", code_only)
+		navigable = get_navigable_modules()
+		self.assertIn("Persian Translation", navigable)
+		self.assertNotIn("Persian RTL", navigable)
+
+	def test_the_app_ships_the_contextual_sidebar(self):
+		path = Path(frappe.get_app_path(APP_NAME, "persian_translation", "sidebar", MENU_LABEL)) / f"{MENU_LABEL}.json"
+		self.assertTrue(path.exists(), path)
+		fixture = json.loads(path.read_text(encoding="utf-8"))
+		self.assertEqual(fixture["module"], "Persian Translation")
+		self.assertEqual(fixture["title"], MENU_LABEL)
+		labels = [row["label"] for row in fixture["items"]]
+		self.assertEqual(
+			labels,
+			["مدیریت ترجمه فارسی", "مدیریت فونت سیستم", "سازگاری راست‌به‌چپ"],
+		)
+		self.assertFalse((Path(frappe.get_app_path(APP_NAME)) / "persian_rtl" / "sidebar").exists())
 
 
 class TestInstallLifecycle(IntegrationTestCase):
 	def test_repeated_install_steps_do_not_duplicate_artifacts(self):
+		from smartprocee_erpnext_persiant.install import remove_navbar_item
+
+		remove_navbar_item()
 		sync_standard_items()
 		sync_standard_items()
-		self.assertEqual(navbar_labels().count(MENU_LABEL), 1)
+		self.assertEqual(navbar_labels().count(MENU_LABEL), 0)
 		self.assertEqual(frappe.db.count("Persian Font Family", {"source": "Bundled"}), 0)
 		self.assertEqual(frappe.db.count(ICON, {"name": MENU_LABEL}), 1)
 		if frappe.db.has_column("Workspace Sidebar", "app"):
@@ -142,6 +175,16 @@ class TestUninstallCleanup(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Workspace Sidebar", LEGACY_SIDEBAR))
 		self.assertFalse(frappe.db.exists(ICON, MENU_LABEL))
 		self.assertNotIn(MENU_LABEL, navbar_labels())
+		if frappe.db.exists("DocType", "Sidebar") and frappe.db.table_exists("Sidebar"):
+			self.assertFalse(frappe.db.exists("Sidebar", MENU_LABEL))
+			self.assertEqual(
+				frappe.get_all(
+					"Sidebar",
+					filters={"module": ["in", ["Persian Translation", "Persian RTL"]]},
+					pluck="name",
+				),
+				[],
+			)
 		# Nothing that belongs to Frappe or another app is touched.
 		self.assertTrue(frappe.db.exists(ICON, "Framework"))
 		self.assertTrue(frappe.db.exists(ICON, "System"))

@@ -6,26 +6,16 @@ app_license = "GPL-3.0-or-later"
 app_home = "/app/persian-translation-manager"
 required_apps = ["frappe", "erpnext"]
 
-add_to_apps_screen = [
-	{
-		"name": app_name,
-		"title": "فارسی‌ساز",
-		"route": app_home,
-		"logo": "/assets/smartprocee_erpnext_persiant/images/logo.svg",
-		"has_permission": "smartprocee_erpnext_persiant.permissions.has_app_permission",
-	}
-]
-
-standard_navbar_items = [
-	{
-		"item_label": app_title,
-		"item_type": "Action",
-		"action": "frappe.set_route('persian-translation-manager')",
-		"condition": "frappe.user.has_role('System Manager')",
-		"icon": "languages",
-		"is_standard": 1,
-	}
-]
+# Not on the Apps screen or the header Apps switcher. The Desk home icon and
+# the contextual Sidebar are the entry points. `on_apps_screen` is True only
+# when this hook is present.
+#
+# Persian RTL stays code-only so this app has one navigable module. The
+# Frappe 16.53 header then hides the Modules switcher. RTL Settings stay on
+# the Persian Translation Sidebar. Older Frappe ignores this hook.
+code_only_modules = {
+	"Persian RTL": [],
+}
 
 after_install = "smartprocee_erpnext_persiant.install.after_install"
 before_uninstall = "smartprocee_erpnext_persiant.install.before_uninstall"
@@ -34,6 +24,7 @@ after_migrate = [
 	"smartprocee_erpnext_persiant.install.ensure_restore_point",
 	"smartprocee_erpnext_persiant.install.sync_public_assets",
 	"smartprocee_erpnext_persiant.desk_icon.ensure_home_icon",
+	"smartprocee_erpnext_persiant.install.remove_navbar_item",
 	"smartprocee_erpnext_persiant.persian_translation.account_display.ensure_display_translations",
 	"smartprocee_erpnext_persiant.persian_translation.system_font.service.refresh_active_css",
 	"smartprocee_erpnext_persiant.persian_rtl.settings.sync_from_registry",

@@ -15,10 +15,9 @@ Do not treat a later v16 release as supported until this matrix records a real r
 
 | Environment | Frappe | ERPNext | CRM | Status |
 |---|---|---|---|---|
-| Docker development bench | 16.35.0 | 16.35.0 | 1.85.1 when installed | Source and automated tests for 1.2.1 |
-| Owner Ubuntu operational bench | 16.53.0 | 16.52.1 | 1.89.1 (`frappe/crm` tag `v1.89.1`, commit `5e1df8c`) | Target. This release does not include an Ubuntu deploy. Live browser on Ubuntu is `NOT VERIFIED` |
-| Docker `SmartProcessERP` | 16.53.0 | 16.52.1 | 1.89.1 | Migrated and browser-checked for 1.2.1. Automated tests ran on `ptm_clean_test2` |
-| Earlier Ubuntu report | 16.52.0 | 16.51.1 | unknown | Superseded as the operational target |
+| Docker development bench | 16.35.0 | 16.35.0 | 1.85.1 when installed | Source and automated tests through 1.2.2 |
+| Frappe 16.53 evaluation bench | 16.53.0 | 16.52.1 | 1.89.1 | Browser-checked for 1.2.1 navigation and CRM RTL. 1.2.2 dock hide is verified on this class of bench |
+| Earlier 16.52 evaluation | 16.52.0 | 16.51.1 | unknown | Superseded as the evaluation target |
 | Frappe Cloud | — | — | — | `NOT VERIFIED` |
 | Website / portal outside Desk | — | — | — | `NOT VERIFIED` |
 
@@ -49,6 +48,9 @@ This is an application schema assumption. Do not add `app` to those core tables.
 | CRM HTML entry | 1.85 and 1.89 have no `crm/www/crm.html`. Page is `crm/www/crm.py` | Detect `crm.py` or `frontend/index.html`. Inject via `after_request` |
 | Account Category | `translated_doctype` Property Setter | Write only when none exists |
 | Desktop Icon `link_type` | 16.53 accepts Workspace Sidebar or External. `Page` is obsolete | Ship External + `/app/persian-translation-manager`. Keep Page only when that option still exists |
+| Desktop Icon `icon_type` | 16.53: Link, Folder, App. A Link icon needs a resolvable module Sidebar | Use `Link` so the home icon opens the contextual Sidebar |
+| `add_to_apps_screen` | Sets `bootinfo.app_data[].on_apps_screen` | Omit the hook so the app is absent from the Apps switcher |
+| `code_only_modules` | 16.53+ hook. Older 16.x ignores it | Declare only `Persian RTL`. Keep `Persian Translation` navigable |
 | Desktop Icon nesting | 16.53 hides children whose `parent_icon` is not a visible top-level icon | Persianizer icon is top-level (`parent_icon` empty) |
 | Dock labels | `dock.js` renders `entry.label` without `__()` | `boot_session` translates display `label`/`title` when `lang` is `fa` |
 | Private File download | `/private/files/` uses `File.is_downloadable` → attached document `read` | Excel exports stay unattached and a File `has_permission` hook refuses non-owners |
@@ -65,7 +67,7 @@ This is an application schema assumption. Do not add `app` to those core tables.
 - Repeated migrate
 - Uninstall safety for the changed surface
 
-Mark each item Verified, Simulated or Not tested. Do not claim Ubuntu 16.52 compatibility without a live run on that bench.
+Mark each item Verified, Simulated or Not tested. Do not claim a Frappe or ERPNext version without a live run on that class of bench.
 
 ## Dependencies
 

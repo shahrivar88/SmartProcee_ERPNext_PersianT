@@ -25,6 +25,19 @@ Persianizer is a Frappe app. Its install name is `smartprocee_erpnext_persiant`.
 
 See [docs/FRAPPE_COMPATIBILITY.md](docs/FRAPPE_COMPATIBILITY.md) for the Frappe and ERPNext versions this release claims, and for checks that are still `NOT VERIFIED`.
 
+## Documentation
+
+| Audience | Document |
+|---|---|
+| End users (Persian) | [docs/USER_GUIDE.fa.md](docs/USER_GUIDE.fa.md) |
+| Site administrators | [docs/ADMINISTRATION.md](docs/ADMINISTRATION.md) |
+| Developers and AI agents | [AGENTS.md](AGENTS.md), [docs/DEVELOPER.md](docs/DEVELOPER.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Testers | [docs/TESTING.md](docs/TESTING.md) |
+| Version matrix | [docs/FRAPPE_COMPATIBILITY.md](docs/FRAPPE_COMPATIBILITY.md) |
+| Security reports | [SECURITY.md](SECURITY.md) |
+
+`AGENTS.md` is the engineering contract. Do not copy it into other tool files.
+
 ## Installation
 
 ```bash
@@ -56,7 +69,7 @@ Restart the web and worker processes after the migration.
 ## Basic usage
 
 1. Log in as a System Manager.
-2. Open `فارسی‌ساز` from the Desk home icon, the Apps screen, or the header menu.
+2. Open `فارسی‌ساز` from the Desk home icon. The Apps switcher and the header Modules menu do not list this app. The contextual Sidebar then offers Translation Manager, Font Manager and RTL Settings.
 3. Start a scan to load the translatable strings of the installed apps.
 4. Search and filter the list. Edit a Persian value, then save.
 5. Use the backup section to see restore points, take a manual snapshot, or restore.

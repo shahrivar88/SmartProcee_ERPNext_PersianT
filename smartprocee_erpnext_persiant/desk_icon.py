@@ -74,7 +74,12 @@ def _icon_values() -> dict:
 		values["link_to"] = PAGE_ROUTE
 	if meta.has_field("icon_type"):
 		icon_types = _field_options(meta, "icon_type")
-		values["icon_type"] = "Link" if "Link" in icon_types else (icon_types[0] if icon_types else "Link")
+		# Link follows the module Sidebar, so the home icon opens the
+		# contextual rail. App would put the same label on the Apps switcher.
+		if "Link" in icon_types:
+			values["icon_type"] = "Link"
+		elif icon_types:
+			values["icon_type"] = icon_types[0]
 	if frappe.db.has_column(ICON, "app"):
 		values["app"] = APP_NAME
 	return values

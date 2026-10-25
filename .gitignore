@@ -7,3 +7,16 @@ compose.smart-process.with-persian.yaml
 translation-build.json
 smartprocee_erpnext_persiant/translations/*.bak-*
 smartprocee_erpnext_persiant/translations/.fa.csv.tmp-*
+_inspect*.py
+_run_inspect*
+_print_icon_meta.py
+*.woff
+*.woff2
+*.ttf
+*.otf
+*.sql
+*.log
+*.xlsx
+*.xls
+.env
+site_config.json

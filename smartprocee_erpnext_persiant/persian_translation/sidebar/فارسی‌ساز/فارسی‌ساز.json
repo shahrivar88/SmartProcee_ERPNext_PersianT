@@ -1,0 +1,61 @@
+{
+ "app": "smartprocee_erpnext_persiant",
+ "docstatus": 0,
+ "doctype": "Sidebar",
+ "header_icon": "languages",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "child": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "icon": "languages",
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
+   "label": "مدیریت ترجمه فارسی",
+   "link_to": "persian-translation-manager",
+   "link_type": "Page",
+   "open_in_new_tab": 0,
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "added": 0,
+   "child": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "icon": "type",
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
+   "label": "مدیریت فونت سیستم",
+   "link_to": "persian-system-font-manager",
+   "link_type": "Page",
+   "open_in_new_tab": 0,
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "added": 0,
+   "child": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "icon": "settings",
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
+   "label": "سازگاری راست‌به‌چپ",
+   "link_to": "Persian RTL Settings",
+   "link_type": "DocType",
+   "open_in_new_tab": 0,
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "module": "Persian Translation",
+ "name": "فارسی‌ساز",
+ "standard": 1,
+ "title": "فارسی‌ساز"
+}

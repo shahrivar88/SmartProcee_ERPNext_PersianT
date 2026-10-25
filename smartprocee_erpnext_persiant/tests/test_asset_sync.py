@@ -186,5 +186,5 @@ class TestAssetPathGuards(AssetSyncCase):
 
 	def test_no_path_is_hard_coded(self):
 		source = Path(install.__file__).read_text(encoding="utf-8")
-		for hard_coded in ("/home/frappe", "frappe-bench", "ptm_clean_test2", "SmartProcessERP"):
+		for hard_coded in ("/home/frappe", "C:\\Users\\", "/Users/"):
 			self.assertNotIn(hard_coded, source)

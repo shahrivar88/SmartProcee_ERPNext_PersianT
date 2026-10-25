@@ -14,12 +14,12 @@ Machine-wide skills (`smartprocess-erpnext`, official Frappe skills) add procedu
 
 | Item | Value |
 |---|---|
-| Repository | `C:\Users\shahr\.cursor\PerisanERPNEXT\SmartProcee_ERPNext_PersianT` |
-| Remote | `https://github.com/shahrivar88/SmartProcee_ERPNext_PersianT` |
+| Public repository | `SmartProcee_ERPNext_PersianT` |
+| Public remote | the configured `origin` remote of this working tree |
 | App install name | `smartprocee_erpnext_persiant` |
 | Desk title | فارسی‌ساز |
-| Published tag | `v1.2.1` |
-| Working version | `1.2.1` in `__init__.py` |
+| Latest published tag | `v1.2.2` |
+| Working version | `1.2.2` in `__init__.py` |
 
 Do not rename the install name, DocType identifiers or database columns.
 
@@ -29,16 +29,21 @@ Do not use a stale copy of this repository.
 
 Protect uncommitted work. Do not reset or overwrite another agent's changes.
 
+Do not write machine paths, personal usernames, email addresses, internal IP addresses, server hostnames, container names, site names, or port numbers into this repository.
+
 ### Environments for this module
 
-| Role | Site | Notes |
-|---|---|---|
-| Operational / production-like | `SmartProcessERP` on port 8080 | Do not test, migrate or uninstall here |
-| Primary disposable test | `ptm_clean_test2` on port 8081 | Full app set including logistics lives on `erpnext-backend-1` |
-| Clean Persianizer-only DB | `ptm_clean_test` | No historical translation index. Do not assume 8081 always points here |
-| Independent Ubuntu bench | Frappe 16.53.0 / ERPNext 16.52.1 / CRM 1.89.1 | Operational target. Live browser is outstanding |
+Use only owner-approved existing benches and sites. Do not create a site, container, volume or port.
 
-Docker volumes are shared. Logical isolation is a process rule, not a hardware guarantee. Do not add a site, container or port when these already exist.
+| Role | Rule |
+|---|---|
+| Operational / production-like site | Treat as production. Do not test, migrate, uninstall or write here unless the owner asked for that site by name |
+| Disposable test site | Run automated, destructive and experimental work here |
+| Clean install site | Use when a test needs a database with no historical Persianizer index |
+
+The machine-wide `smartprocess-erpnext` skill may name the owner's local sites. Those names stay out of this repository.
+
+Shared Docker volumes do not make an operational site safe for tests. Logical isolation is a process rule, not a hardware guarantee.
 
 ## 2. Instruction layers
 
@@ -48,6 +53,11 @@ Docker volumes are shared. Logical isolation is a process rule, not a hardware g
 | `CLAUDE.md` | Claude Code entry point only |
 | `.cursor/rules/persianizer-engineering.mdc` | Cursor pointer and short hard limits |
 | `docs/FRAPPE_COMPATIBILITY.md` | Version matrix and version-sensitive APIs |
+| `docs/ARCHITECTURE.md` | Runtime map. Must not contradict this file |
+| `docs/DEVELOPER.md` | Handoff map. Must not copy this contract |
+| `docs/TESTING.md` | How to run suites |
+| `docs/ADMINISTRATION.md` | Site operations |
+| `docs/USER_GUIDE.fa.md` | Persian end-user steps |
 | `smartprocess-erpnext` skill | Reuse order, container routing, Persian reports |
 | Official Frappe skills | Framework mechanics |
 
@@ -162,7 +172,7 @@ Before any production migrate: identify the site, record app versions, inspect p
 
 Do not add a site, server, container or port when an approved test environment already exists.
 
-`SmartProcessERP` on port 8080 is operational for this project. Treat it as production-like. Shared Docker volumes do not make it a test site.
+The owner's operational site is production-like. Shared Docker volumes do not make it a test site.
 
 ## 10. UI and Persian
 

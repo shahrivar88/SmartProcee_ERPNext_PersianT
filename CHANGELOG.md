@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.2.2]
+
+### Desk navigation
+
+- The Desk home icon stays. The app is no longer on the Apps screen or in the header Apps switcher (`add_to_apps_screen` is not declared).
+- The header navbar row is removed. The home icon and the page routes remain the entry points.
+- `Persian RTL` is `code_only_modules`. This app then has one navigable module, so the Frappe 16.53 Modules switcher stays hidden.
+- `Persian Translation` stays navigable and ships a contextual `Sidebar` with Translation Manager, Font Manager and RTL Settings.
+
+### Documentation
+
+- Architecture, developer handoff, testing, administration and a Persian user guide now live under `docs/`.
+- Public docs no longer name machine paths, site names, ports or internal hosts.
+
 ## [1.2.1]
 
 ### Translation Manager

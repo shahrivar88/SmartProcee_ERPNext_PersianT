@@ -219,8 +219,24 @@ def remove_desk_navigation():
 	for name in (MENU_LABEL, "Persian Translation"):
 		if frappe.db.exists("Workspace Sidebar", name):
 			frappe.delete_doc("Workspace Sidebar", name, force=1, ignore_on_trash=1)
+	_remove_owned_module_sidebars()
 	if frappe.db.exists("Desktop Icon", MENU_LABEL):
 		frappe.delete_doc("Desktop Icon", MENU_LABEL, force=1, ignore_on_trash=1)
+
+
+def _remove_owned_module_sidebars():
+	"""Drop Frappe 16.53 Sidebar rows for this app's modules. Uninstall only."""
+	if not frappe.db.exists("DocType", "Sidebar") or not frappe.db.table_exists("Sidebar"):
+		return
+	names = frappe.get_all(
+		"Sidebar",
+		filters={"module": ["in", ["Persian Translation", "Persian RTL"]]},
+		pluck="name",
+	)
+	if frappe.db.exists("Sidebar", MENU_LABEL):
+		names.append(MENU_LABEL)
+	for name in dict.fromkeys(names):
+		frappe.delete_doc("Sidebar", name, force=1, ignore_on_trash=1)
 
 
 def before_uninstall():
